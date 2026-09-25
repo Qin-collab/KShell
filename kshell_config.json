@@ -1,0 +1,10 @@
+{
+    "banner_enabled": true,
+    "history_size": 1000,
+    "prompt_style": "default",
+    "use_colors": true,
+    "welcome_message": "Welcome to KShell!",
+    "aliases": {},
+    "environment": {},
+    "theme": "default"
+}
