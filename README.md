@@ -453,7 +453,7 @@ self.commands['mycommand'] = self.cmd_mycommand
 
 ## 许可证
 
-MIT License
+Apache License 2.0
 
 ## 贡献
 
