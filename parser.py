@@ -23,6 +23,33 @@ class CommandParser:
             'type': 'cat',
         }
 
+    def expand_alias(self, input_str: str) -> str:
+        """展开别名（返回替换后的完整命令行）"""
+        stripped = input_str.strip()
+        if not stripped or stripped.startswith('#'):
+            return stripped
+        first_word = stripped.split()[0] if stripped.split() else ''
+        if first_word in self.aliases:
+            return self.aliases[first_word] + stripped[len(first_word):]
+        return stripped
+
+    def raw_split(self, input_str: str) -> Tuple[str, List[str]]:
+        """
+        别名展开后切分，保留原始参数顺序（含所有选项）。
+        用于把参数完整透传给系统命令，避免选项被解析丢弃。
+        返回: (命令, 原始参数列表)
+        """
+        expanded = self.expand_alias(input_str)
+        if not expanded:
+            return '', []
+        try:
+            parts = shlex.split(expanded)
+        except ValueError:
+            parts = expanded.split()
+        if not parts:
+            return '', []
+        return parts[0], parts[1:]
+
     def parse(self, input_str: str) -> Tuple[str, List[str], Dict[str, str]]:
         """
         解析命令行输入
@@ -34,9 +61,7 @@ class CommandParser:
             return '', [], {}
 
         # 处理别名
-        first_word = input_str.split()[0] if input_str.split() else ''
-        if first_word in self.aliases:
-            input_str = self.aliases[first_word] + input_str[len(first_word):]
+        input_str = self.expand_alias(input_str)
 
         # 使用 shlex 分割命令和参数（支持引号）
         try:

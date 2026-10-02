@@ -370,15 +370,76 @@ config set use_colors false
 
 > 重定向输出到文件时会自动清理 ANSI 颜色码，不会污染文件内容。
 
+## v2.0 新特性
+
+### 1. 系统 PATH 命令直接使用
+
+系统 PATH 中的任何命令都可以直接输入执行，无需额外配置：
+
+```bash
+git status          # 直接调用系统 git
+python --version    # 直接调用系统 python
+ipconfig /all       # Windows 命令（含选项完整透传）
+docker ps           # 任意已安装的命令
+```
+
+v2.0 会自动扫描 PATH 建立命令索引，并识别 Windows 的 `PATHEXT`（.exe/.cmd/.bat/.com）。
+未命中的命令会按间隔自动重新扫描，新安装的软件无需重启 KShell。
+
+### 2. 内置命令优先于系统命令
+
+当同名命令同时存在于 KShell 内置和系统 PATH 时，**优先执行 KShell 的内置实现**：
+
+```bash
+ls -l          # 走 KShell 内置 ls（不是系统的 ls）
+grep foo f.txt # 走 KShell 内置 grep
+```
+
+如需强制执行系统版本，使用 `command` 绕过（bash 风格）：
+
+```bash
+command ls -l  # 强制使用系统 ls
+command find . # 强制使用系统 find
+```
+
+切换优先级（系统命令优先，不存在时回退内置）：
+
+```bash
+config set builtin_priority false
+```
+
+### 3. 新增 `path` 命令
+
+```bash
+path                  # 列出 PATH 目录 + 系统/内置命令总数
+path -s <关键字>       # 搜索系统命令
+path -b               # 查看被内置命令优先接管的系统命令
+path -a <目录>         # 添加 PATH 目录（当前会话）
+path -r <目录>         # 移除 PATH 目录（当前会话）
+path -F               # 强制重新扫描系统命令
+```
+
+### 4. 其它改进
+
+- **选项完整透传**：修复了系统命令选项被解析器丢弃的问题（`ping -n 2` 不再丢失 `-n`）
+- **管道数据真正传递**：`内置命令 | 系统命令` 可混合使用，上游输出作为下游标准输入
+- **Windows cmd 内部命令**：`dir`、`ver`、`title`、`color` 等非可执行文件命令也可调用
+- **非 UTF-8 输出解码**：使用 `errors='replace'`，避免 GBK 输出导致崩溃
+- **`ls <文件>`**：现在可以列出单个文件（此前对文件路径无输出）
+- **新增 `calc` 计算器**：基于 AST 安全求值，支持 `+ - * / // % **` 和括号
+- **`which -a`**：同时显示内置命令与系统命令路径
+
 ## 架构说明
 
 ### 模块结构
 
 - `kplatform.py` - 平台检测和底层接口抽象（命名避免与标准库冲突）
+- `syscmd.py` - **v2.0** 系统 PATH 命令解析（PATH 扫描、PATHEXT、cmd 内部命令、遮蔽报告）
 - `filesystem.py` - 文件系统操作（使用 pathlib 和 shutil）
-- `parser.py` - 命令解析器
-- `process.py` - 进程管理（使用 subprocess）
+- `parser.py` - 命令解析器（含 `raw_split` 原始参数切分）
+- `process.py` - 进程管理（使用 subprocess，完整 argv 透传）
 - `builtin.py` - 内置命令实现
+- `commands_extra.py` - 扩展命令（`path`、`calc` 等）
 - `theme.py` - 颜色主题（ANSI 转义码 + 预设主题）
 - `settings.py` - 设置和配置管理（JSON 存储）
 - `banner.py` - 启动横幅和 ASCII 艺术
@@ -453,7 +514,7 @@ self.commands['mycommand'] = self.cmd_mycommand
 
 ## 许可证
 
-Apache License 2.0
+MIT License
 
 ## 贡献
 

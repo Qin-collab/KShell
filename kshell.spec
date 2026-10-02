@@ -13,7 +13,7 @@ a = Analysis(
     hiddenimports=[
         'terminal', 'kplatform', 'filesystem', 'parser',
         'process', 'builtin', 'settings', 'banner', 'theme',
-        'commands_extra',
+        'commands_extra', 'syscmd',
     ],
     hookspath=[],
     hooksconfig={},

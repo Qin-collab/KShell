@@ -50,7 +50,11 @@ class SettingsManager:
             "welcome_message": "Welcome to KShell!",
             "aliases": {},
             "environment": {},  # 自定义环境变量
-            "theme": "default"  # 颜色主题
+            "theme": "default",  # 颜色主题
+            # v2.0：内置命令优先于系统同名命令
+            # True  = 内置优先（默认），用 command <cmd> 可强制执行系统版本
+            # False = 系统命令优先，系统不存在时回退到内置
+            "builtin_priority": True,
         }
 
     def get(self, key: str, default: Any = None) -> Any:

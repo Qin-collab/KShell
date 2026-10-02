@@ -48,6 +48,12 @@ class FileSystem:
         if not target_path.exists():
             return []
 
+        # 目标是文件时，列出该文件本身（与 GNU ls 行为一致，v2.0 修复）
+        if target_path.is_file():
+            if not show_hidden and target_path.name.startswith('.'):
+                return []
+            return [(target_path.name, 'file')]
+
         try:
             items = []
             for item in target_path.iterdir():

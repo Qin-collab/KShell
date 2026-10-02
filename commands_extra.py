@@ -3,6 +3,7 @@
 实现额外的内置命令（sudo、文件内容、查找、系统、工具类命令）
 """
 
+import ast
 import base64
 import datetime
 import fnmatch
@@ -23,6 +24,7 @@ class ExtraCommands:
         self.fs = builtin.fs
         self.platform = builtin.platform
         self.settings = builtin.settings
+        self.theme = getattr(builtin, 'theme', None)
         self._register()
 
     def _register(self):
@@ -63,6 +65,9 @@ class ExtraCommands:
             'true': self.cmd_true,
             'false': self.cmd_false,
             'man': self.cmd_man,
+            # v2.0 新增
+            'path': self.cmd_path,
+            'calc': self.cmd_calc,
         })
 
     # ------------------------------------------------------------------
@@ -556,25 +561,130 @@ class ExtraCommands:
         return 0, '\n'.join(output)
 
     def cmd_which(self, args: List[str], options: dict) -> Tuple[int, str]:
-        """查找命令路径"""
+        """
+        查找命令路径（v2.0：同时显示内置命令与系统命令的优先级）
+        """
         if not args:
-            return 1, "which: missing command"
+            return 1, "which: 缺少命令名"
 
+        pm = getattr(self.builtin, 'process_manager', None)
+        show_all = 'a' in options or 'all' in options
         output = []
+
         for cmd in args:
-            path = self.builtin.process_manager.which(cmd) if hasattr(self.builtin, 'process_manager') else None
-            if path is None:
-                # 尝试内置命令
-                if cmd in self.builtin.commands:
-                    path = f"builtin: {cmd}"
-                else:
-                    path = None
-            if path:
-                output.append(path)
+            is_builtin = cmd in self.builtin.commands
+            entry = pm.resolve(cmd) if pm else None
+
+            if is_builtin and entry is not None:
+                # 同时存在：内置优先
+                output.append(f"{cmd}: builtin (KShell 内置命令)")
+                if show_all:
+                    output.append(f"      system: {entry.path}")
+            elif is_builtin:
+                output.append(f"{cmd}: builtin (KShell 内置命令)")
+            elif entry is not None:
+                output.append(entry.path)
             else:
                 output.append(f"which: no {cmd} in PATH")
 
         return 0, '\n'.join(output)
+
+    def cmd_path(self, args: List[str], options: dict) -> Tuple[int, str]:
+        """
+        系统 PATH 管理（v2.0）
+
+        用法:
+          path                列出 PATH 目录和系统命令总数
+          path -s <关键字>     搜索系统命令
+          path -b             显示被内置命令优先接管的系统命令
+          path -a <目录>       向 PATH 添加目录（当前会话）
+          path -r <目录>       从 PATH 移除目录（当前会话）
+          path -F             强制重新扫描系统命令
+        """
+        pm = getattr(self.builtin, 'process_manager', None)
+        if pm is None:
+            return 1, "path: 进程管理器不可用"
+
+        resolver = pm.resolver
+
+        # 强制重新扫描
+        if 'F' in options:
+            count = pm.refresh_commands()
+            return 0, f"已重新扫描系统 PATH，发现 {count} 条命令"
+
+        # 搜索系统命令
+        keyword = options.get('s') or options.get('search')
+        if keyword is True:
+            keyword = args[0] if args else ''
+        if keyword:
+            found = resolver.search(str(keyword))
+            if not found:
+                return 0, f"未找到匹配 '{keyword}' 的系统命令"
+            lines = []
+            for cmd in found[:200]:
+                mark = " [内置优先]" if cmd.name in self.builtin.commands else ""
+                kind = " (cmd内置)" if cmd.kind == 'cmd_builtin' else ""
+                lines.append(f"  {cmd.name}{kind}{mark}\n    {cmd.path}")
+            if len(found) > 200:
+                lines.append(f"  ... 共 {len(found)} 条，仅显示前 200 条")
+            else:
+                lines.append(f"  共 {len(found)} 条")
+            return 0, '\n'.join(lines)
+
+        # 显示遮蔽报告
+        if 'b' in options or 'builtin' in options:
+            pairs = resolver.shadowed(self.builtin.commands.keys())
+            if not pairs:
+                return 0, "没有系统命令被内置命令遮蔽"
+            lines = [
+                f"以下 {len(pairs)} 条系统命令被 KShell 内置命令优先接管:",
+                "（如需强制执行系统版本，请使用: command <命令>）",
+                "",
+            ]
+            for name, cmd in pairs:
+                lines.append(f"  {name:<14} -> 系统: {cmd.path}")
+            return 0, '\n'.join(lines)
+
+        # 添加目录
+        add_dir = options.get('a') or options.get('add')
+        if add_dir is True:
+            add_dir = args[0] if args else None
+        if add_dir:
+            entries = resolver.path_entries()
+            if str(add_dir) in entries:
+                return 0, f"PATH 中已存在: {add_dir}"
+            entries.append(str(add_dir))
+            pm.set_env('PATH', self.platform.get_env_separator().join(entries))
+            resolver.env = pm.env
+            pm.refresh_commands()
+            return 0, f"已添加: {add_dir}（仅当前会话有效）"
+
+        # 移除目录
+        rm_dir = options.get('r') or options.get('remove')
+        if rm_dir is True:
+            rm_dir = args[0] if args else None
+        if rm_dir:
+            entries = resolver.path_entries()
+            remaining = [e for e in entries if e != str(rm_dir)]
+            if len(remaining) == len(entries):
+                return 1, f"PATH 中不存在: {rm_dir}"
+            pm.set_env('PATH', self.platform.get_env_separator().join(remaining))
+            resolver.env = pm.env
+            pm.refresh_commands()
+            return 0, f"已移除: {rm_dir}（仅当前会话有效）"
+
+        # 默认：列出 PATH
+        entries = resolver.path_entries()
+        lines = [f"PATH 目录（共 {len(entries)} 个）:"]
+        for idx, entry in enumerate(entries, 1):
+            exists = pathlib.Path(entry).is_dir()
+            flag = "" if exists else "  [不存在]"
+            lines.append(f"  {idx:>2}. {entry}{flag}")
+        lines.append("")
+        lines.append(f"系统命令总数: {resolver.count()}")
+        lines.append(f"内置命令总数: {len(self.builtin.commands)}")
+        lines.append("提示: path -s <关键字> 搜索系统命令 | path -b 查看被接管的命令")
+        return 0, '\n'.join(lines)
 
     # ------------------------------------------------------------------
     # 系统命令
@@ -879,16 +989,63 @@ class ExtraCommands:
         return 0, f"NAME\n    {cmd}\n\nSYNOPSIS\n    {doc}"
 
     def cmd_calc(self, args: List[str], options: Dict[str, Any]) -> Tuple[int, str]:
+        """
+        简单计算器（v2.0）
+        支持 + - * / // % ** 和括号，使用 AST 安全求值
+        """
+        def _err(msg: str) -> str:
+            if self.theme:
+                return self.theme.colorize(msg, 'error')
+            return msg
+
         if not args:
-            return 1, self.theme.error("用法: calc <表达式>") if self.theme else "用法: calc <表达式>"
-        
+            return 1, _err("用法: calc <表达式>") + "  例如: calc (1+2)*3"
+
         expr = " ".join(args)
         try:
-            # 安全求值：只允许数字和运算符
-            allowed = set("0123456789+-*/.() ")
-            if not all(c in allowed for c in expr):
-                return 1, self.theme.error("表达式包含非法字符") if self.theme else "表达式包含非法字符"
-            result = eval(expr, {"__builtins__": {}}, {})
+            tree = ast.parse(expr, mode='eval')
+            result = self._eval_node(tree.body)
             return 0, str(result)
+        except ZeroDivisionError:
+            return 1, _err("计算错误: 除数为零")
+        except SyntaxError:
+            return 1, _err(f"表达式语法错误: {expr}")
         except Exception as e:
-            return 1, self.theme.error(f"计算错误: {e}") if self.theme else f"计算错误: {e}"
+            return 1, _err(f"计算错误: {e}")
+
+    def _eval_node(self, node):
+        """递归求值 AST 节点（仅允许数字与算术运算）"""
+        if isinstance(node, ast.Constant):
+            if isinstance(node.value, (int, float)) and not isinstance(node.value, bool):
+                return node.value
+            raise ValueError(f"不支持的常量: {node.value!r}")
+
+        if isinstance(node, ast.BinOp):
+            left = self._eval_node(node.left)
+            right = self._eval_node(node.right)
+            op = node.op
+            if isinstance(op, ast.Add):
+                return left + right
+            if isinstance(op, ast.Sub):
+                return left - right
+            if isinstance(op, ast.Mult):
+                return left * right
+            if isinstance(op, ast.Div):
+                return left / right
+            if isinstance(op, ast.FloorDiv):
+                return left // right
+            if isinstance(op, ast.Mod):
+                return left % right
+            if isinstance(op, ast.Pow):
+                return left ** right
+            raise ValueError("不支持的运算符")
+
+        if isinstance(node, ast.UnaryOp):
+            operand = self._eval_node(node.operand)
+            if isinstance(node.op, ast.USub):
+                return -operand
+            if isinstance(node.op, ast.UAdd):
+                return +operand
+            raise ValueError("不支持的一元运算符")
+
+        raise ValueError("表达式包含不支持的语法")

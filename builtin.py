@@ -123,9 +123,15 @@ class BuiltinCommands:
                     return self.theme.colorize(name, 'file')
             return name
 
+        # v2.0：判断 path 是否指向单个文件（此时不应再拼接子项名）
+        single_file = bool(path) and self.fs.is_file(path)
+
         for name, item_type in items:
             if show_details:
-                target_path = path + '/' + name if path else name
+                if single_file:
+                    target_path = path
+                else:
+                    target_path = path + '/' + name if path else name
                 info = self.fs.get_file_info(target_path)
                 if info:
                     size = self._format_size(info['size'])
@@ -359,7 +365,17 @@ class BuiltinCommands:
             return text
 
         output = [
-            _c("KShell - 跨平台终端", 'banner_title'),
+            _c("KShell 2.0 - 跨平台终端", 'banner_title'),
+            "",
+            _c("系统命令 (v2.0 新特性):", 'title'),
+            "  任意 PATH 中的命令   - 直接输入即可执行，如 git, python, ipconfig",
+            "  command <cmd>        - 强制执行系统版本，绕过同名内置命令",
+            "  path                 - 查看 PATH 目录与系统命令总数",
+            "  path -s <关键字>      - 搜索系统命令",
+            "  path -b              - 显示被内置命令优先接管的系统命令",
+            "  path -a / -r <目录>   - 添加/移除 PATH 目录（当前会话）",
+            "  path -F              - 强制重新扫描系统命令",
+            "  优先级               - 内置命令优先于系统同名命令（可用 config 调整）",
             "",
             _c("文件操作:", 'title'),
             "  cd <dir>        - 改变当前目录",
@@ -407,7 +423,8 @@ class BuiltinCommands:
             "  unset <key>     - 删除环境变量",
             "  alias <name=val>- 设置别名",
             "  unalias <name>  - 删除别名",
-            "  which <cmd>     - 查找命令路径",
+            "  which <cmd>     - 查找命令路径 (which -a 显示系统路径)",
+            "  calc <表达式>    - 简单计算器，如 calc (1+2)*3",
             "  base64 [-d] <t> - Base64 编码/解码",
             "  md5sum <file>   - 计算 MD5 哈希",
             "  sha1sum <file>  - 计算 SHA1 哈希",

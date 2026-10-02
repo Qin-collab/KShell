@@ -9,6 +9,11 @@
   - 获取默认 shell 和用户主目录
   - （命名为 kplatform 以避免与标准库 platform 模块冲突）
 
+- `syscmd.py` - **v2.0** 系统 PATH 命令解析
+  - 扫描 PATH 建立命令索引（识别 PATHEXT 扩展名）
+  - 识别 Windows cmd.exe 内部命令（dir/ver/title 等）
+  - 提供遮蔽报告（哪些系统命令被内置命令优先接管）
+
 - `filesystem.py` - 文件系统操作模块
   - 实现目录切换、文件列表、创建/删除等操作
   - 使用 pathlib 和 shutil 替代 os 库

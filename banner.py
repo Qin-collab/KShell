@@ -5,7 +5,7 @@
 
 from kplatform import Platform
 
-def get_banner(platform: Platform, version: str = "1.0", theme=None) -> str:
+def get_banner(platform: Platform, version: str = "2.0", theme=None) -> str:
     """获取启动横幅"""
 
     # ASCII Art 标志
