@@ -14,6 +14,25 @@
   - 识别 Windows cmd.exe 内部命令（dir/ver/title 等）
   - 提供遮蔽报告（哪些系统命令被内置命令优先接管）
 
+- `version.py` - **v2.1** 版本号单一来源
+  - `VERSION` / `VERSION_SHORT` 常量，避免各处硬编码
+  - `check_requirement()` 版本要求表达式校验（供插件系统使用）
+
+- `pluginmgr.py` - **v2.1** 插件系统核心
+  - `PluginManager` —— 插件发现、加载、注册、配置、脚手架
+  - `Plugin` / `PluginCommand` —— 插件与命令描述
+  - `PluginContext` —— 传给插件函数的上下文（ctx）
+  - `PLUGIN_STDLIB_HINTS` —— 打包时需包含的插件常用标准库清单
+  - 关键设计：源码 `compile()` + `exec()` 加载，绕过 .pyc 缓存以保证热重载准确
+
+- `commands_plugin.py` - **v2.1** `plugin` 命令组
+  - list / info / enable / disable / reload / config / dirs / new / help
+
+- `plugins/` - **v2.1** 官方示例插件
+  - `hello/` 入门示例（配置读取、选项、回调、别名）
+  - `pwgen/` 多命令示例（密码/UUID/强度评估，secrets 加密安全随机）
+  - `sysinfo/` 结构化输出示例（--json、配置开关、优雅降级）
+
 - `filesystem.py` - 文件系统操作模块
   - 实现目录切换、文件列表、创建/删除等操作
   - 使用 pathlib 和 shutil 替代 os 库

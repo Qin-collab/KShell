@@ -15,6 +15,34 @@ from builtin import BuiltinCommands
 from settings import SettingsManager
 from banner import get_banner
 from theme import ThemeManager, enable_ansi_windows, supports_color, strip_ansi
+from pluginmgr import PluginManager
+from version import VERSION_SHORT
+
+
+def safe_print(text: str = '', end: str = '\n'):
+    """
+    安全输出：Windows 控制台默认 GBK 编码，遇到无法编码的字符
+    （✓、emoji、部分特殊符号）会抛 UnicodeEncodeError 并中断整个 Shell。
+    这里降级为替换字符，保证命令永不因编码问题崩溃。
+
+    插件输出的内容不受 KShell 控制，因此所有输出都必须走这里。
+    """
+    try:
+        print(text, end=end)
+    except UnicodeEncodeError:
+        encoding = getattr(sys.stdout, 'encoding', None) or 'utf-8'
+        try:
+            fallback = str(text).encode(encoding, errors='replace').decode(encoding, errors='replace')
+            sys.stdout.write(fallback)
+            sys.stdout.write(end)
+            sys.stdout.flush()
+        except Exception:
+            # 最终兜底：剥掉所有非 ASCII 字符
+            sys.stdout.write(str(text).encode('ascii', errors='replace').decode('ascii'))
+            sys.stdout.write(end)
+            sys.stdout.flush()
+    except (BrokenPipeError, OSError):
+        pass
 
 class Terminal:
     """终端核心类"""
@@ -41,7 +69,15 @@ class Terminal:
         self.builtin = BuiltinCommands(self.filesystem, self.platform, self.parser, self.settings, self.theme)
         self.builtin.set_process_manager(self.process_manager)
 
-        self.version = "2.0"
+        # ---- 插件系统 (v2.1) ----
+        self.plugin_manager = PluginManager(
+            self.platform, self.filesystem, self.parser,
+            self.settings, self.theme, self.builtin
+        )
+        self.builtin.set_plugin_manager(self.plugin_manager)
+        self.plugin_summary = self.plugin_manager.load_all()
+
+        self.version = VERSION_SHORT
         self.running = True
         self.exit_code = 0
         self.max_history = self.settings.get('history_size', 1000)
@@ -50,12 +86,19 @@ class Terminal:
         """运行终端主循环"""
         # 显示启动横幅
         if self.settings.get('banner_enabled', True):
-            print(get_banner(self.platform, version=self.version, theme=self.theme))
+            safe_print(get_banner(self.platform, version=self.version, theme=self.theme), end='')
+
+        # 插件加载失败提示（只提示，不中断启动）
+        errors = self.plugin_summary.get('errors') or []
+        if errors:
+            for name, reason in errors:
+                safe_print(f"  [插件] {name} 加载失败: {reason}")
+            safe_print()
 
         # 显示欢迎消息
         welcome_msg = self.settings.get('welcome_message')
         if welcome_msg and welcome_msg != "Welcome to KShell!":
-            print(f"{welcome_msg}\n")
+            safe_print(f"{welcome_msg}\n", end='')
 
         while self.running:
             try:
@@ -68,15 +111,15 @@ class Terminal:
 
             except KeyboardInterrupt:
                 # Ctrl+C
-                print()
+                safe_print()
                 continue
             except EOFError:
                 # Ctrl+D
-                print()
+                safe_print()
                 self.running = False
                 break
             except Exception as e:
-                print(f"Error: {e}")
+                safe_print(f"Error: {e}")
 
     def _get_prompt(self) -> str:
         """生成提示符（带主题颜色）"""
@@ -155,11 +198,11 @@ class Terminal:
         else:
             # 打印输出
             if output:
-                print(output, end='')
+                safe_print(output, end='')
                 # 确保输出以换行结束，避免提示符与输出粘连
                 # echo -n 除外（用户明确要求不换行）
                 if not output.endswith('\n') and not (command == 'echo' and 'n' in options):
-                    print()
+                    safe_print()
 
         self.exit_code = return_code
 
@@ -245,9 +288,9 @@ class Terminal:
 
         # 打印最终输出
         if output:
-            print(output, end='')
+            safe_print(output, end='')
             if not output.endswith('\n'):
-                print()
+                safe_print()
 
         self.exit_code = return_code
 
@@ -255,7 +298,7 @@ class Terminal:
         """执行脚本文件"""
         content = self.filesystem.read_file(script_path)
         if content is None:
-            print(f"Error: Cannot read script: {script_path}")
+            safe_print(f"Error: Cannot read script: {script_path}")
             return
 
         lines = content.split('\n')

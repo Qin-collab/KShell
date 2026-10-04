@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KShell — 纯 Python 编写的跨平台终端</title>
+<meta name="description" content="KShell 是一个纯 Python 编写的跨平台终端：零 GUI 依赖、68 条内置命令、6 套主题，支持 Windows / macOS / Linux，系统 PATH 命令直通，内置命令优先。">
+<meta name="keywords" content="KShell,终端,Terminal,Shell,Python,跨平台,Windows,macOS,Linux">
+<meta name="author" content="Qin-collab">
+<meta name="theme-color" content="#0a0e14">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="KShell — 纯 Python 编写的跨平台终端">
+<meta property="og:description" content="零 GUI 依赖、68 条内置命令、6 套主题，系统 PATH 命令直通，支持 Windows / macOS / Linux。">
+<meta property="og:url" content="https://github.com/Qin-collab/KShell">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/styles.css">
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+<!-- ===================== 顶部导航 ===================== -->
+<header class="site-header" id="top">
+  <div class="wrap header-inner">
+    <a class="brand" href="#top" aria-label="KShell 首页">
+      <span class="brand-mark" aria-hidden="true">&gt;_</span>
+      <span class="brand-name">KShell</span>
+      <span class="brand-version" id="brand-version" data-version>v2.0.0</span>
+    </a>
+
+    <button class="nav-toggle" id="nav-toggle" aria-label="展开导航" aria-expanded="false" aria-controls="site-nav">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
+      <a href="#features">特性</a>
+      <a href="#demo">演示</a>
+      <a href="#commands">命令</a>
+      <a href="#themes">主题</a>
+      <a href="#install">安装</a>
+      <a href="/community">开发者社区</a>
+      <a class="nav-gh" href="https://github.com/Qin-collab/KShell" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+        <span>GitHub</span>
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- 公告条（内容由后台「站点设置 → 首页公告条」控制，留空则不显示） -->
+  <div class="announcement" id="announcement" hidden></div>
+
+  <!-- ===================== 首屏 ===================== -->
+  <section class="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="wrap hero-inner">
+
+      <div class="hero-copy">
+        <p class="pill">
+          <span class="pill-dot" aria-hidden="true"></span>
+          最新版本 <strong data-version>v2.0.0</strong>
+          <span class="pill-sep">·</span>
+          <span data-license>Apache-2.0</span>
+        </p>
+
+        <h1>
+          一个用 <span class="grad">纯 Python</span> 写的<br>
+          跨平台终端
+        </h1>
+
+        <p class="lead">
+          零 GUI 依赖、零外部依赖，一个文件即可开箱即用。
+          <strong>68 条内置命令</strong>、<strong>6 套主题</strong>，系统 PATH 命令直通，
+          Windows / macOS / Linux 三端一致。
+        </p>
+
+        <div class="cta-row">
+          <!-- 主下载按钮：经服务端 302 跳转到 GitHub Releases（同时计入下载统计） -->
+          <a class="btn btn-primary btn-lg"
+             id="download-primary"
+             href="/dl/latest"
+             target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span>下载最新版</span>
+          </a>
+
+          <a class="btn btn-ghost btn-lg" href="#install">
+            <span>查看安装方式</span>
+          </a>
+        </div>
+
+        <p class="cta-note">
+          下载按钮跳转至
+          <a href="https://github.com/Qin-collab/KShell/releases" target="_blank" rel="noopener">GitHub Releases</a>
+          页面 · <span id="release-meta">正在获取版本信息…</span>
+        </p>
+      </div>
+
+      <!-- 终端演示窗口 -->
+      <div class="hero-term">
+        <div class="term">
+          <div class="term-bar">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+            <span class="term-title">kshell — 交互模式</span>
+          </div>
+          <pre class="term-body" id="term-body" aria-label="KShell 运行演示"><code></code></pre>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== 数据条 ===================== -->
+  <section class="stats">
+    <div class="wrap stats-inner">
+      <div class="stat"><b data-count="68">68</b><span>内置与扩展命令</span></div>
+      <div class="stat"><b data-count="6">6</b><span>预设主题</span></div>
+      <div class="stat"><b>3</b><span>支持平台</span></div>
+      <div class="stat"><b>0</b><span>第三方依赖</span></div>
+      <div class="stat"><b>100%</b><span>Python 实现</span></div>
+    </div>
+  </section>
+
+  <!-- ===================== 特性 ===================== -->
+  <section class="section" id="features">
+    <div class="wrap">
+      <header class="section-head">
+        <h2>v2.0 核心特性</h2>
+        <p>打通与操作系统命令行的边界，同时保持跨平台行为一致</p>
+      </header>
+
+      <div class="cards">
+        <article class="card reveal">
+          <div class="card-icon icon-cyan">⌘</div>
+          <h3>系统 PATH 命令直通</h3>
+          <p>
+            系统里装了什么就能用什么。<code>git</code>、<code>docker</code>、<code>python</code>、<code>ipconfig</code>
+            直接输入即可执行，<strong>选项完整保留</strong>，不再被解析器丢弃。
+          </p>
+          <pre class="mini-code"><code>git status
+ping -n 2 127.0.0.1   <span class="c"># -n 2 不会丢</span></code></pre>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-icon icon-green">★</div>
+          <h3>内置命令优先</h3>
+          <p>
+            同名命令优先走 KShell 自己的实现，行为可预测、输出统一。
+            需要系统版本时用 <code>command</code> 绕过，或用配置项切换规则。
+          </p>
+          <pre class="mini-code"><code>ls -l            <span class="c"># KShell 内置</span>
+command ls -l    <span class="c"># 系统版本</span></code></pre>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-icon icon-purple">⌗</div>
+          <h3>68 条内置命令</h3>
+          <p>
+            36 条核心命令 + 32 条扩展命令，覆盖文件操作、文本处理、
+            查找检索、系统信息与工具类，无需安装 GNU 工具链。
+          </p>
+          <pre class="mini-code"><code>grep / find / tree / du
+base64 / md5sum / sha256sum</code></pre>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-icon icon-yellow">◐</div>
+          <h3>6 套配色主题</h3>
+          <p>
+            default · dark · light · ocean · monokai · solarized，
+            自动检测终端是否支持颜色，重定向到文件时自动去除 ANSI 码。
+          </p>
+          <pre class="mini-code"><code>theme list
+theme ocean</code></pre>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-icon icon-blue">⇄</div>
+          <h3>管道与重定向</h3>
+          <p>
+            管道会把上游输出真正传给下游，内置命令与系统命令可自由混用；
+            支持 <code>&gt;</code>、<code>&gt;&gt;</code>、<code>&lt;</code> 重定向。
+          </p>
+          <pre class="mini-code"><code>ls | findstr .py
+cat log | grep ERROR &gt; err.txt</code></pre>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-icon icon-red">⚙</div>
+          <h3>脚本与配置持久化</h3>
+          <p>
+            用 <code>.ksh</code> 脚本批量执行命令；别名、主题、环境变量
+            保存在 JSON 配置中，重启后依旧生效。
+          </p>
+          <pre class="mini-code"><code>kshell deploy.ksh
+alias ll='ls -l'</code></pre>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 命令演示 ===================== -->
+  <section class="section section-alt" id="demo">
+    <div class="wrap">
+      <header class="section-head">
+        <h2>新增命令演示</h2>
+        <p>v2.0 带来 <code>path</code> 与 <code>calc</code> 两条新命令</p>
+      </header>
+
+      <div class="demo-grid">
+        <div class="demo-block reveal">
+          <h3><code>path</code> — 管理并检视系统 PATH</h3>
+          <ul class="cmd-list">
+            <li><code>path</code><span>列出 PATH 目录与命令总数</span></li>
+            <li><code>path -s git</code><span>搜索系统命令</span></li>
+            <li><code>path -b</code><span>查看被内置命令接管的系统命令</span></li>
+            <li><code>path -a &lt;目录&gt;</code><span>添加 PATH 目录（当前会话）</span></li>
+            <li><code>path -F</code><span>强制重新扫描系统命令</span></li>
+          </ul>
+          <pre class="code-block"><code><span class="p">$</span> path -b
+以下 25 条系统命令被 KShell 内置命令优先接管:
+<span class="c">（如需强制执行系统版本，请使用: command &lt;命令&gt;）</span>
+
+  calc          → 系统: C:\WINDOWS\system32\calc.exe
+  find          → 系统: C:\WINDOWS\system32\find.exe
+  hostname      → 系统: C:\WINDOWS\system32\HOSTNAME.EXE
+  sort          → 系统: C:\WINDOWS\system32\sort.exe
+  ...</code></pre>
+        </div>
+
+        <div class="demo-block reveal">
+          <h3><code>calc</code> — 安全求值计算器</h3>
+          <p class="demo-desc">
+            基于 Python <code>ast</code> 模块实现，<strong>不使用 eval</strong>，
+            只允许数字与算术运算，函数调用和导入一律拒绝。
+          </p>
+          <pre class="code-block"><code><span class="p">$</span> calc 1+2*3
+7
+<span class="p">$</span> calc (1+2)*3
+9
+<span class="p">$</span> calc 2**10
+1024
+<span class="p">$</span> calc 10/4
+2.5
+<span class="p">$</span> calc __import__("os").system("rm -rf /")
+计算错误: 表达式包含不支持的语法</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 命令参考 ===================== -->
+  <section class="section" id="commands">
+    <div class="wrap">
+      <header class="section-head">
+        <h2>命令参考</h2>
+        <p>68 条内置命令，另有系统 PATH 中任意命令可直接调用</p>
+      </header>
+
+      <div class="cmd-groups">
+        <div class="cmd-group reveal">
+          <h3>目录与文件</h3>
+          <p><code>cd</code><code>pwd</code><code>ls</code><code>dir</code><code>mkdir</code><code>md</code><code>rmdir</code><code>rd</code><code>rm</code><code>del</code><code>cp</code><code>copy</code><code>mv</code><code>move</code><code>cat</code><code>type</code><code>touch</code><code>tree</code><code>stat</code><code>du</code><code>df</code><code>find</code></p>
+        </div>
+        <div class="cmd-group reveal">
+          <h3>文本处理</h3>
+          <p><code>echo</code><code>head</code><code>tail</code><code>grep</code><code>wc</code><code>sort</code><code>uniq</code><code>nl</code><code>tee</code><code>base64</code><code>md5sum</code><code>sha1sum</code><code>sha256sum</code></p>
+        </div>
+        <div class="cmd-group reveal">
+          <h3>系统与进程</h3>
+          <p><code>ps</code><code>kill</code><code>sleep</code><code>uptime</code><code>uname</code><code>id</code><code>sudo</code><code>whoami</code><code>hostname</code><code>date</code><code>time</code><code>env</code><code>set</code><code>unset</code><code>export</code></p>
+        </div>
+        <div class="cmd-group reveal">
+          <h3>终端与配置</h3>
+          <p><code>clear</code><code>cls</code><code>history</code><code>alias</code><code>unalias</code><code>which</code><code>man</code><code>help</code><code>config</code><code>theme</code><code>path</code><code>calc</code><code>seq</code><code>yes</code><code>true</code><code>false</code><code>exit</code><code>quit</code></p>
+        </div>
+      </div>
+
+      <div class="note reveal">
+        <strong>命令优先级：</strong>
+        内置命令 <span class="arrow">›</span> 系统 PATH 命令。
+        两者同名时默认执行内置版本，用 <code>command &lt;cmd&gt;</code> 强制走系统版本，
+        或 <code>config set builtin_priority false</code> 全局切换为系统优先。
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 主题 ===================== -->
+  <section class="section section-alt" id="themes">
+    <div class="wrap">
+      <header class="section-head">
+        <h2>主题</h2>
+        <p>6 套预设配色，<code>theme preview</code> 一键预览</p>
+      </header>
+      <div class="themes" id="themes-grid"><!-- 由 app.js 渲染 --></div>
+    </div>
+  </section>
+
+  <!-- ===================== 下载 ===================== -->
+  <section class="section" id="download">
+    <div class="wrap">
+      <header class="section-head">
+        <h2>下载</h2>
+        <p>
+          所有下载均来自
+          <a href="https://github.com/Qin-collab/KShell/releases" target="_blank" rel="noopener">GitHub Releases</a>
+          <span id="download-version"></span>
+        </p>
+        <p class="download-note" id="download-note" hidden></p>
+      </header>
+
+      <div class="downloads" id="downloads">
+        <!-- 由 app.js 依据 /api/latest 渲染；无 JS 时下方静态链接仍可用 -->
+        <noscript>
+          <p class="muted">请访问 GitHub Releases 页面下载：<a href="https://github.com/Qin-collab/KShell/releases">github.com/Qin-collab/KShell/releases</a></p>
+          <p><a class="btn btn-primary" href="https://github.com/Qin-collab/KShell/releases" target="_blank" rel="noopener">前往 Releases</a></p>
+        </noscript>
+      </div>
+
+      <div class="downloads-foot">
+        <a class="btn btn-primary btn-lg" id="download-all"
+           href="/dl/latest"
+           target="_blank" rel="noopener">前往 Releases 页面</a>
+        <a class="btn btn-ghost btn-lg" href="https://github.com/Qin-collab/KShell" target="_blank" rel="noopener">查看源码</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 安装 ===================== -->
+  <section class="section section-alt" id="install">
+    <div class="wrap">
+      <header class="section-head">
+        <h2>安装方式</h2>
+        <p>四种方式任选，Windows 可执行文件无需安装 Python</p>
+      </header>
+
+      <div class="tabs" role="tablist" aria-label="安装方式">
+        <button class="tab is-active" role="tab" aria-selected="true" aria-controls="panel-windows" id="tab-windows">Windows</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="panel-linux" id="tab-linux">Linux</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="panel-source" id="tab-source">源码</button>
+      </div>
+
+      <div class="tab-panels">
+        <div class="panel is-active" id="panel-windows" role="tabpanel" aria-labelledby="tab-windows">
+          <h3>方式一：下载可执行文件（推荐）</h3>
+          <p>从 Releases 下载 <code>kshell_windows_x64_*.exe</code>，双击即可运行，无需安装 Python。</p>
+          <div class="code-wrap">
+            <pre class="code-block"><code>kshell_windows_x64_v2.0.exe            :: 交互模式
+kshell_windows_x64_v2.0.exe script.ksh :: 脚本模式</code></pre>
+            <button class="copy-btn" data-copy="kshell_windows_x64_v2.0.exe">复制</button>
+          </div>
+
+          <h3>方式二：源码运行</h3>
+          <p>已安装 Python 3.6+ 时可直接运行源码：</p>
+          <div class="code-wrap">
+            <pre class="code-block"><code>python kshell.py</code></pre>
+            <button class="copy-btn" data-copy="python kshell.py">复制</button>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-linux" role="tabpanel" aria-labelledby="tab-linux">
+          <h3>方式一：APT 仓库</h3>
+          <div class="code-wrap">
+            <pre class="code-block"><code>echo "deb [trusted=yes] http://39.96.82.163/apt stable main" | sudo tee /etc/apt/sources.list.d/kshell.list
+sudo apt update
+sudo apt install -y kshell
+kshell</code></pre>
+            <button class="copy-btn" data-copy='echo "deb [trusted=yes] http://39.96.82.163/apt stable main" | sudo tee /etc/apt/sources.list.d/kshell.list
+sudo apt update
+sudo apt install -y kshell'>复制</button>
+          </div>
+
+          <h3>方式二：deb 安装包</h3>
+          <p>从 Releases 下载 <code>.deb</code> 后安装：</p>
+          <div class="code-wrap">
+            <pre class="code-block"><code>sudo dpkg -i kshell_*.deb
+sudo apt-get install -f -y   # 如有依赖缺失
+kshell</code></pre>
+            <button class="copy-btn" data-copy="sudo dpkg -i kshell_*.deb">复制</button>
+          </div>
+
+          <h3>方式三：源码运行</h3>
+          <div class="code-wrap">
+            <pre class="code-block"><code>git clone https://github.com/Qin-collab/KShell.git
+cd KShell
+python3 kshell.py</code></pre>
+            <button class="copy-btn" data-copy="git clone https://github.com/Qin-collab/KShell.git
+cd KShell
+python3 kshell.py">复制</button>
+          </div>
+
+          <p class="muted">自行构建安装包：<code>pip3 install pyinstaller &amp;&amp; bash packaging/build_linux.sh</code></p>
+        </div>
+
+        <div class="panel" id="panel-source" role="tabpanel" aria-labelledby="tab-source">
+          <h3>克隆并运行</h3>
+          <div class="code-wrap">
+            <pre class="code-block"><code>git clone https://github.com/Qin-collab/KShell.git
+cd KShell
+python3 kshell.py          # 交互模式
+python3 kshell.py test.ksh # 脚本模式</code></pre>
+            <button class="copy-btn" data-copy="git clone https://github.com/Qin-collab/KShell.git
+cd KShell
+python3 kshell.py">复制</button>
+          </div>
+
+          <h3>运行测试</h3>
+          <div class="code-wrap">
+            <pre class="code-block"><code>python test.py             # 核心测试
+python test_extra.py       # 扩展命令测试
+python test_v2_syscmd.py   # v2.0 系统命令测试</code></pre>
+            <button class="copy-btn" data-copy="python test.py
+python test_extra.py
+python test_v2_syscmd.py">复制</button>
+          </div>
+
+          <h3>构建可执行文件</h3>
+          <div class="code-wrap">
+            <pre class="code-block"><code>pip install pyinstaller
+python -m PyInstaller kshell.spec --noconfirm --clean</code></pre>
+            <button class="copy-btn" data-copy="pip install pyinstaller
+python -m PyInstaller kshell.spec --noconfirm --clean">复制</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===================== 页脚 ===================== -->
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <span class="brand-mark" aria-hidden="true">&gt;_</span>
+      <div>
+        <b>KShell</b>
+        <p>纯 Python 编写的跨平台终端</p>
+      </div>
+    </div>
+
+    <nav class="footer-links" aria-label="页脚导航">
+      <div>
+        <h4>项目</h4>
+        <a href="https://github.com/Qin-collab/KShell" target="_blank" rel="noopener">源码仓库</a>
+        <a href="https://github.com/Qin-collab/KShell/releases" target="_blank" rel="noopener">版本发布</a>
+        <a href="https://github.com/Qin-collab/KShell/issues" target="_blank" rel="noopener">问题反馈</a>
+      </div>
+      <div>
+        <h4>文档</h4>
+        <a href="https://github.com/Qin-collab/KShell/blob/main/README.md" target="_blank" rel="noopener">使用说明</a>
+        <a href="https://github.com/Qin-collab/KShell/blob/main/QUICKSTART.md" target="_blank" rel="noopener">快速上手</a>
+        <a href="https://github.com/Qin-collab/KShell/blob/main/STRUCTURE.md" target="_blank" rel="noopener">项目结构</a>
+        <a href="https://github.com/Qin-collab/KShell/blob/main/RELEASE_2.0.0.md" target="_blank" rel="noopener">2.0.0 版本文档</a>
+      </div>
+      <div>
+        <h4>本页</h4>
+        <a href="#features">特性</a>
+        <a href="#commands">命令</a>
+        <a href="#download">下载</a>
+        <a href="#install">安装</a>
+      </div>
+    </nav>
+  </div>
+
+  <div class="wrap footer-bottom">
+    <p>
+      © <span id="year">2026</span> KShell ·
+      基于 <span data-license>Apache-2.0</span> 协议开源 ·
+      本站由纯 Node.js 提供服务，零第三方依赖
+    </p>
+    <p class="footer-term"><code><span class="p">$</span> kshell --version<span class="cursor" aria-hidden="true"></span></code></p>
+  </div>
+</footer>
+
+<script src="/app.js" defer></script>
+</body>
+</html>

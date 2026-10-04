@@ -1,0 +1,22 @@
+{
+  "name": "kshell-website",
+  "version": "2.0.0",
+  "description": "KShell 官方网站 - 纯 Node.js 实现，零第三方依赖",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js --port 3000"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "kshell",
+    "terminal",
+    "shell",
+    "python",
+    "website"
+  ],
+  "license": "Apache-2.0"
+}

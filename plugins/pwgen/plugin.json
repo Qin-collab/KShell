@@ -1,0 +1,31 @@
+{
+  "name": "pwgen",
+  "version": "1.0.0",
+  "author": "KShell Team",
+  "description": "密码与 UUID 生成器：可配置长度与字符集，使用加密安全随机源",
+  "kshell": ">=2.1.0",
+  "enabled": true,
+  "commands": {
+    "pwgen": {
+      "function": "cmd_pwgen",
+      "usage": "pwgen [数量] [长度] [--no-symbols]",
+      "description": "生成随机密码（默认读插件配置）"
+    },
+    "uuid": {
+      "function": "cmd_uuid",
+      "usage": "uuid [数量]",
+      "description": "生成 UUID v4"
+    },
+    "passwd-strength": {
+      "function": "cmd_strength",
+      "usage": "passwd-strength <密码>",
+      "description": "评估密码强度（演示多命令插件）"
+    }
+  },
+  "settings": {
+    "default_length": 16,
+    "default_count": 1,
+    "use_symbols": true,
+    "avoid_ambiguous": true
+  }
+}

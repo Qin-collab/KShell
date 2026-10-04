@@ -370,6 +370,73 @@ config set use_colors false
 
 > 重定向输出到文件时会自动清理 ANSI 颜色码，不会污染文件内容。
 
+## v2.1 新特性
+
+### 1. 插件系统：JSON 配置 + Python 实现
+
+插件是一个目录，含两个文件，放进 `plugins/` 即被自动发现：
+
+```
+plugins/myplugin/
+├── plugin.json     元数据、命令声明、默认配置
+└── plugin.py       Python 实现
+```
+
+```bash
+$ plugin new myplugin          # 生成可运行的插件骨架
+$ plugin reload myplugin       # 加载（改代码后重复执行即热重载）
+$ myplugin hello               # 运行
+```
+
+`plugin.py` 里每个命令对应一个函数，签名固定：
+
+```python
+def cmd_hello(args, options, ctx):
+    greeting = ctx.get('greeting', 'Hello')   # 读插件配置
+    name = args[0] if args else 'World'
+    return 0, f'{greeting}, {name}!'          # (退出码, 输出)
+```
+
+`ctx` 提供 `fs` / `platform` / `settings` / `theme` / `colorize`，以及 `get` / `set` 读写插件自己的配置。
+
+**关键特性**：
+
+- **热重载** —— `plugin reload` 立即生效，无需重启
+- **异常隔离** —— 插件加载失败或执行出错只提示，不会拖垮 Shell
+- **配置持久化** —— `plugin config <名称> 键=值`，重启后仍生效
+- **脚手架** —— `plugin new` 自动生成可运行骨架
+- **免改本体** —— 不需要动 KShell 任何源码
+
+官方示例插件（`plugins/`）：
+
+| 插件 | 命令 | 演示内容 |
+|------|------|---------|
+| `hello` | `hello` `greet` | 配置读取、选项、回调、别名 |
+| `pwgen` | `pwgen` `uuid` `passwd-strength` | 多命令、`secrets` 加密安全随机 |
+| `sysinfo` | `sysinfo` `sys` | `--json` 输出、配置开关、优雅降级 |
+
+完整开发指南见 [PLUGIN_DEV.md](PLUGIN_DEV.md)，在线版见官网 `/community` 开发者社区。
+
+### 2. `plugin` 命令组
+
+```bash
+plugin                      # 列出全部插件
+plugin info <名称>           # 详情：元数据、命令、配置、失败原因
+plugin enable/disable <名称> # 启用/禁用（写入配置）
+plugin reload [名称]         # 重新加载
+plugin config <名称> k=v     # 修改插件配置（自动推断类型）
+plugin dirs                 # 显示插件搜索目录
+plugin new <名称>            # 生成插件骨架
+```
+
+插件搜索目录（优先级从高到低）：打包内置 → 项目 `plugins/` → **可执行文件同级 `plugins/`** → `~/.kshell/plugins` → 配置 `plugins.dirs`。
+
+### 3. 其它改进
+
+- **`safe_print()` 安全输出** —— Windows GBK 控制台遇到 `✓`、emoji 等字符不再崩溃，降级为替换字符
+- **配置支持点号路径** —— `plugins.enabled` 这类嵌套配置读写更自然，并兼容旧扁平键
+- **`version.py` 统一版本号** —— 避免各处硬编码不一致
+
 ## v2.0 新特性
 
 ### 1. 系统 PATH 命令直接使用
@@ -434,6 +501,10 @@ path -F               # 强制重新扫描系统命令
 ### 模块结构
 
 - `kplatform.py` - 平台检测和底层接口抽象（命名避免与标准库冲突）
+- `version.py` - **v2.1** 版本号单一来源 + 版本要求校验
+- `pluginmgr.py` - **v2.1** 插件系统核心（发现、加载、注册、配置、脚手架）
+- `commands_plugin.py` - **v2.1** `plugin` 命令组
+- `plugins/` - **v2.1** 官方示例插件（hello / pwgen / sysinfo）
 - `syscmd.py` - **v2.0** 系统 PATH 命令解析（PATH 扫描、PATHEXT、cmd 内部命令、遮蔽报告）
 - `filesystem.py` - 文件系统操作（使用 pathlib 和 shutil）
 - `parser.py` - 命令解析器（含 `raw_split` 原始参数切分）

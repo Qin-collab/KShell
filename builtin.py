@@ -69,9 +69,20 @@ class BuiltinCommands:
         except ImportError:
             pass  # 扩展命令模块不可用时静默跳过
 
+        # 注册插件管理命令 (plugin ...) —— v2.1
+        try:
+            from commands_plugin import PluginCommands
+            PluginCommands(self)
+        except ImportError:
+            pass
+
     def set_process_manager(self, process_manager):
         """设置进程管理器引用（供 which 等命令使用）"""
         self.process_manager = process_manager
+
+    def set_plugin_manager(self, plugin_manager):
+        """设置插件管理器引用（供 plugin 命令使用）—— v2.1"""
+        self.plugin_manager = plugin_manager
 
     def execute(self, command: str, args: List[str], options: dict) -> Tuple[int, str]:
         """
@@ -365,9 +376,19 @@ class BuiltinCommands:
             return text
 
         output = [
-            _c("KShell 2.0 - 跨平台终端", 'banner_title'),
+            _c("KShell 2.1 - 跨平台终端", 'banner_title'),
             "",
-            _c("系统命令 (v2.0 新特性):", 'title'),
+            _c("插件系统 (v2.1 新特性):", 'title'),
+            "  plugin               - 列出全部插件",
+            "  plugin info <名称>    - 插件详情（元数据、命令、配置）",
+            "  plugin enable/disable <名称> - 启用/禁用插件",
+            "  plugin reload [名称]  - 重新加载插件（省略名称则全部）",
+            "  plugin config <n> k=v - 修改插件配置",
+            "  plugin new <名称>     - 生成插件骨架（开发用）",
+            "  plugin dirs          - 显示插件搜索目录",
+            "  插件开发             - 见项目根目录 PLUGIN_DEV.md",
+            "",
+            _c("系统命令 (v2.0 特性):", 'title'),
             "  任意 PATH 中的命令   - 直接输入即可执行，如 git, python, ipconfig",
             "  command <cmd>        - 强制执行系统版本，绕过同名内置命令",
             "  path                 - 查看 PATH 目录与系统命令总数",

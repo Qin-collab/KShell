@@ -4,9 +4,11 @@
 """
 
 from kplatform import Platform
+from version import VERSION_SHORT
 
-def get_banner(platform: Platform, version: str = "2.0", theme=None) -> str:
+def get_banner(platform: Platform, version: str = None, theme=None) -> str:
     """获取启动横幅"""
+    version = version or VERSION_SHORT
 
     # ASCII Art 标志
     logo = r"""

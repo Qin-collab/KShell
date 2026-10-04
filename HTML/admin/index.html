@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KShell 管理后台</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/admin/style.css">
+</head>
+<body>
+
+<!-- ==================== 登录 ==================== -->
+<div class="login-view" id="login-view" hidden>
+  <form class="login-card" id="login-form" autocomplete="on">
+    <div class="login-brand">
+      <span class="brand-mark">&gt;_</span>
+      <div>
+        <b>KShell</b>
+        <span>管理后台</span>
+      </div>
+    </div>
+
+    <label class="field">
+      <span>管理员密码</span>
+      <input type="password" id="login-password" name="password" placeholder="请输入密码"
+             autocomplete="current-password" required autofocus>
+    </label>
+
+    <p class="login-error" id="login-error" role="alert" hidden></p>
+
+    <button class="btn btn-primary btn-block" type="submit" id="login-submit">登录</button>
+
+    <p class="login-hint">
+      忘记密码？停止服务后删除 <code>data/admin.json</code>，重启会自动生成新密码。
+    </p>
+  </form>
+</div>
+
+<!-- ==================== 控制台 ==================== -->
+<div class="app-view" id="app-view" hidden>
+
+  <aside class="sidebar">
+    <div class="side-brand">
+      <span class="brand-mark">&gt;_</span>
+      <div>
+        <b>KShell</b>
+        <span>管理后台</span>
+      </div>
+    </div>
+
+    <nav class="side-nav" id="side-nav">
+      <button class="nav-item is-active" data-view="overview">
+        <span class="ni-icon">▤</span> 概览
+      </button>
+      <button class="nav-item" data-view="traffic">
+        <span class="ni-icon">▦</span> 访问统计
+      </button>
+      <button class="nav-item" data-view="release">
+        <span class="ni-icon">◈</span> 版本发布
+      </button>
+      <button class="nav-item" data-view="community">
+        <span class="ni-icon">⬡</span> 插件社区
+      </button>
+      <button class="nav-item" data-view="settings">
+        <span class="ni-icon">⚙</span> 站点设置
+      </button>
+      <button class="nav-item" data-view="logs">
+        <span class="ni-icon">≡</span> 请求日志
+      </button>
+      <button class="nav-item" data-view="security">
+        <span class="ni-icon">⚿</span> 安全设置
+      </button>
+    </nav>
+
+    <div class="side-foot">
+      <a href="/" target="_blank" rel="noopener">↗ 查看前台</a>
+      <button id="logout-btn" class="link-btn">退出登录</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <header class="content-head">
+      <h1 id="view-title">概览</h1>
+      <div class="head-actions">
+        <span class="who" id="who">—</span>
+        <button class="btn btn-ghost btn-sm" id="refresh-btn">刷新</button>
+      </div>
+    </header>
+
+    <p class="alert" id="alert" hidden></p>
+
+    <!-- ---------- 概览 ---------- -->
+    <section class="view is-active" id="view-overview">
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span class="stat-label">今日访问</span>
+          <b class="stat-value" id="s-today">—</b>
+          <span class="stat-sub" id="s-today-sub">—</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">累计访问</span>
+          <b class="stat-value" id="s-visits">—</b>
+          <span class="stat-sub" id="s-pageviews">—</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">下载点击</span>
+          <b class="stat-value" id="s-downloads">—</b>
+          <span class="stat-sub" id="s-downloads-sub">—</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">API 调用</span>
+          <b class="stat-value" id="s-api">—</b>
+          <span class="stat-sub" id="s-uptime">—</span>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="panel">
+          <h2>当前发布</h2>
+          <dl class="kv" id="release-kv"></dl>
+          <button class="btn btn-ghost btn-sm" id="refresh-release">刷新 Release 缓存</button>
+        </div>
+
+        <div class="panel">
+          <h2>运行状态</h2>
+          <dl class="kv" id="server-kv"></dl>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>最近 14 天趋势</h2>
+        <div class="chart" id="mini-chart"></div>
+        <div class="chart-legend">
+          <span><i class="dot-visit"></i>访问</span>
+          <span><i class="dot-download"></i>下载</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 访问统计 ---------- -->
+    <section class="view" id="view-traffic">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>访问趋势</h2>
+          <select id="days-select" class="select">
+            <option value="7">最近 7 天</option>
+            <option value="14">最近 14 天</option>
+            <option value="30" selected>最近 30 天</option>
+            <option value="90">最近 90 天</option>
+          </select>
+        </div>
+        <div class="chart chart-tall" id="main-chart"></div>
+        <div class="chart-legend">
+          <span><i class="dot-visit"></i>访问</span>
+          <span><i class="dot-download"></i>下载</span>
+          <span><i class="dot-api"></i>API</span>
+        </div>
+      </div>
+
+      <div class="three-col">
+        <div class="panel">
+          <h2>热门页面</h2>
+          <ul class="rank" id="rank-paths"></ul>
+        </div>
+        <div class="panel">
+          <h2>来源</h2>
+          <ul class="rank" id="rank-refs"></ul>
+        </div>
+        <div class="panel">
+          <h2>客户端</h2>
+          <ul class="rank" id="rank-ua"></ul>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>下载分布</h2>
+        <ul class="rank" id="rank-kinds"></ul>
+      </div>
+
+      <div class="panel">
+        <button class="btn btn-danger btn-sm" id="reset-stats">重置全部统计数据</button>
+        <span class="hint">重置后不可恢复</span>
+      </div>
+    </section>
+
+    <!-- ---------- 版本发布 ---------- -->
+    <section class="view" id="view-release">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>GitHub Releases</h2>
+          <button class="btn btn-ghost btn-sm" id="refresh-release-2">立即刷新</button>
+        </div>
+        <dl class="kv" id="release-detail"></dl>
+      </div>
+
+      <div class="panel">
+        <h2>发布资产</h2>
+        <div class="table-wrap">
+          <table class="table" id="assets-table">
+            <thead>
+              <tr><th>平台</th><th>文件</th><th>大小</th><th>GitHub 下载数</th><th>链接</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>缓存状态</h2>
+        <dl class="kv" id="cache-kv"></dl>
+        <p class="hint">缓存时长可在「站点设置」中调整，或在下方直接刷新。</p>
+      </div>
+    </section>
+
+    <!-- ---------- 插件社区 ---------- -->
+    <section class="view" id="view-community">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>插件注册表</h2>
+          <div>
+            <button class="btn btn-ghost btn-sm" id="registry-reseed">补回官方示例</button>
+            <button class="btn btn-primary btn-sm" id="registry-add-toggle">＋ 新增插件</button>
+          </div>
+        </div>
+        <dl class="kv" id="registry-kv"></dl>
+        <p class="hint">
+          这里的条目会显示在官网 <a href="/community" target="_blank" rel="noopener">/community</a> 的插件画廊中。
+          未勾选「发布」的条目只保存在后台。
+        </p>
+      </div>
+
+      <form class="panel" id="registry-form" hidden>
+        <h2 id="registry-form-title">新增插件</h2>
+        <input type="hidden" id="registry-id">
+
+        <div class="field-row">
+          <label class="field"><span>插件名 *</span>
+            <input type="text" id="reg-name" maxlength="60" required placeholder="myplugin"></label>
+          <label class="field"><span>版本</span>
+            <input type="text" id="reg-version" maxlength="20" placeholder="1.0.0"></label>
+        </div>
+
+        <div class="field-row">
+          <label class="field"><span>作者</span>
+            <input type="text" id="reg-author" maxlength="80" placeholder="你的名字"></label>
+          <label class="field"><span>KShell 版本要求</span>
+            <input type="text" id="reg-kshell" maxlength="30" placeholder="&gt;=2.1.0"></label>
+        </div>
+
+        <label class="field"><span>说明</span>
+          <textarea id="reg-description" rows="3" maxlength="400" placeholder="插件的一句话说明"></textarea></label>
+
+        <label class="field"><span>仓库地址</span>
+          <input type="text" id="reg-repo" maxlength="500" placeholder="https://github.com/you/myplugin"></label>
+
+        <div class="field-row">
+          <label class="field"><span>命令列表（逗号分隔）</span>
+            <input type="text" id="reg-commands" placeholder="hello, greet"></label>
+          <label class="field"><span>标签（逗号分隔）</span>
+            <input type="text" id="reg-tags" placeholder="工具, 安全"></label>
+        </div>
+
+        <label class="field field-inline">
+          <input type="checkbox" id="reg-published" checked>
+          <span>在社区页面发布</span>
+        </label>
+        <label class="field field-inline">
+          <input type="checkbox" id="reg-featured">
+          <span>设为推荐（置顶显示）</span>
+        </label>
+        <label class="field field-inline">
+          <input type="checkbox" id="reg-official">
+          <span>标记为官方插件</span>
+        </label>
+
+        <div class="panel actions" style="padding:0;background:none;border:none">
+          <button class="btn btn-primary" type="submit" id="registry-save">保存</button>
+          <button class="btn btn-ghost" type="button" id="registry-cancel">取消</button>
+        </div>
+      </form>
+
+      <div class="panel">
+        <h2>插件列表</h2>
+        <div class="table-wrap">
+          <table class="table" id="registry-table">
+            <thead>
+              <tr>
+                <th>名称</th><th>版本</th><th>作者</th><th>命令</th>
+                <th>标签</th><th>状态</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 站点设置 ---------- -->
+    <section class="view" id="view-settings">
+      <form id="settings-form">
+        <div class="panel">
+          <h2>站点信息</h2>
+          <label class="field"><span>站点标题</span>
+            <input type="text" data-key="site.title" maxlength="80"></label>
+          <label class="field"><span>一句话简介</span>
+            <input type="text" data-key="site.tagline" maxlength="120"></label>
+          <label class="field"><span>站点描述（SEO）</span>
+            <textarea data-key="site.description" rows="3" maxlength="400"></textarea></label>
+        </div>
+
+        <div class="panel">
+          <h2>首页公告条</h2>
+          <label class="field field-inline">
+            <input type="checkbox" data-key="announcement.enabled">
+            <span>启用公告条</span>
+          </label>
+          <label class="field"><span>公告类型</span>
+            <select data-key="announcement.type">
+              <option value="info">信息（蓝色）</option>
+              <option value="success">成功（绿色）</option>
+              <option value="warning">警告（黄色）</option>
+            </select></label>
+          <label class="field"><span>公告内容</span>
+            <input type="text" data-key="announcement.text" maxlength="200" placeholder="例如：v2.1 已发布，新增插件系统"></label>
+          <div class="field-row">
+            <label class="field"><span>链接文字</span>
+              <input type="text" data-key="announcement.linkText" maxlength="40" placeholder="查看详情"></label>
+            <label class="field"><span>链接地址</span>
+              <input type="text" data-key="announcement.linkUrl" maxlength="500" placeholder="https://..."></label>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>下载设置</h2>
+          <label class="field"><span>主下载按钮地址（留空则用 Releases 最新版）</span>
+            <input type="text" data-key="download.primaryUrl" maxlength="500" placeholder="https://github.com/Qin-collab/KShell/releases/latest"></label>
+          <label class="field"><span>下载区补充说明</span>
+            <input type="text" data-key="download.note" maxlength="300" placeholder="例如：Linux 版本请使用 APT 仓库安装"></label>
+        </div>
+
+        <div class="panel">
+          <h2>接口与统计</h2>
+          <label class="field"><span>GitHub Release 缓存时长（秒）</span>
+            <input type="number" data-key="api.cacheSeconds" min="0" max="86400"></label>
+          <label class="field field-inline">
+            <input type="checkbox" data-key="stats.enabled">
+            <span>启用访问与下载统计</span>
+          </label>
+        </div>
+
+        <div class="panel actions">
+          <button class="btn btn-primary" type="submit" id="save-settings">保存设置</button>
+          <button class="btn btn-ghost" type="button" id="reload-settings">放弃修改</button>
+          <button class="btn btn-danger" type="button" id="reset-settings">恢复默认</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ---------- 日志 ---------- -->
+    <section class="view" id="view-logs">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>最近请求（最多 300 条）</h2>
+          <div>
+            <button class="btn btn-ghost btn-sm" id="reload-logs">刷新</button>
+            <button class="btn btn-danger btn-sm" id="clear-logs">清空</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="table" id="logs-table">
+            <thead>
+              <tr><th>时间</th><th>IP</th><th>方法</th><th>路径</th><th>状态</th><th>耗时</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 安全 ---------- -->
+    <section class="view" id="view-security">
+      <div class="panel">
+        <h2>当前会话</h2>
+        <dl class="kv" id="auth-kv"></dl>
+      </div>
+
+      <form class="panel" id="password-form">
+        <h2>修改密码</h2>
+        <label class="field"><span>当前密码</span>
+          <input type="password" id="pwd-current" autocomplete="current-password" required></label>
+        <label class="field"><span>新密码（至少 8 位）</span>
+          <input type="password" id="pwd-next" autocomplete="new-password" minlength="8" required></label>
+        <label class="field"><span>确认新密码</span>
+          <input type="password" id="pwd-confirm" autocomplete="new-password" minlength="8" required></label>
+        <button class="btn btn-primary" type="submit">更新密码</button>
+        <p class="hint">修改成功后所有登录会话（含当前）都会失效，需要重新登录。</p>
+      </form>
+    </section>
+
+  </main>
+</div>
+
+<script src="/admin/app.js" defer></script>
+</body>
+</html>

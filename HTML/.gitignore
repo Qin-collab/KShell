@@ -1,0 +1,14 @@
+# 依赖目录（本项目零依赖，此目录一般不存在）
+node_modules/
+
+# 后台运行时数据（账户、统计、设置）—— 含密码哈希，切勿提交
+data/
+
+# 开发工具产物
+.shots/
+
+# 日志与临时文件
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db

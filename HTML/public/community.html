@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>开发者社区 — 插件开发 · KShell</title>
+<meta name="description" content="KShell 开发者社区：用 JSON 配置 + Python 实现扩展 KShell。包含插件结构说明、plugin.json 字段参考、ctx API 文档、完整示例与插件画廊。">
+<meta name="keywords" content="KShell,插件,plugin,开发,Python,JSON,扩展,开发者社区">
+<meta name="theme-color" content="#0a0e14">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="KShell 开发者社区 — 插件开发">
+<meta property="og:description" content="用 JSON 配置 + Python 实现扩展 KShell，无需修改本体。">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="/community.css">
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+<!-- ===================== 顶部导航 ===================== -->
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/" aria-label="KShell 首页">
+      <span class="brand-mark" aria-hidden="true">&gt;_</span>
+      <span class="brand-name">KShell</span>
+      <span class="brand-version" data-version>v2.1.0</span>
+    </a>
+
+    <button class="nav-toggle" id="nav-toggle" aria-label="展开导航" aria-expanded="false" aria-controls="site-nav">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
+      <a href="/#features">特性</a>
+      <a href="/#commands">命令</a>
+      <a href="/#download">下载</a>
+      <a href="/community" class="is-current">开发者社区</a>
+      <a class="nav-gh" href="https://github.com/Qin-collab/KShell" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+        <span>GitHub</span>
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- ===================== 社区首屏 ===================== -->
+  <section class="community-hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="wrap">
+      <p class="pill">
+        <span class="pill-dot" aria-hidden="true"></span>
+        开发者社区
+        <span class="pill-sep">·</span>
+        KShell <strong data-version>v2.1.0</strong> 插件系统
+      </p>
+
+      <h1>用 <span class="grad">JSON + Python</span><br>扩展你的终端</h1>
+
+      <p class="lead">
+        插件 = 一个 <code>plugin.json</code>（元数据与配置）+ 一个 <code>plugin.py</code>（实现）。
+        <strong>不需要修改 KShell 本体</strong>，放进 <code>plugins/</code> 目录即可被自动发现、加载与热重载。
+      </p>
+
+      <div class="cta-row">
+        <a class="btn btn-primary btn-lg" href="#quickstart">开始开发</a>
+        <a class="btn btn-ghost btn-lg" href="#gallery">浏览插件画廊</a>
+      </div>
+
+      <div class="hero-stats">
+        <span><b id="stat-plugins">—</b> 个社区插件</span>
+        <span><b>3</b> 个官方示例</span>
+        <span><b>2</b> 个文件即可发布</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 正文（侧栏目录 + 内容） ===================== -->
+  <div class="wrap doc-layout">
+
+    <aside class="doc-toc" id="doc-toc">
+      <h4>目录</h4>
+      <nav>
+        <a href="#quickstart">30 秒上手</a>
+        <a href="#structure">插件结构</a>
+        <a href="#manifest">plugin.json</a>
+        <a href="#implement">plugin.py</a>
+        <a href="#ctx">ctx 上下文 API</a>
+        <a href="#return">返回值约定</a>
+        <a href="#examples">完整示例</a>
+        <a href="#gallery">插件画廊</a>
+        <a href="#submit">提交你的插件</a>
+        <a href="#security">安全须知</a>
+      </nav>
+    </aside>
+
+    <div class="doc-body">
+
+      <!-- ---------------- 快速开始 ---------------- -->
+      <section class="doc-section" id="quickstart">
+        <h2>30 秒上手</h2>
+        <p>KShell 自带脚手架命令，一条命令生成可运行的插件骨架：</p>
+
+        <div class="code-wrap">
+          <pre class="code-block"><code><span class="p">$</span> <span class="f">plugin new</span> myplugin          <span class="c"># 生成插件骨架</span>
+<span class="p">$</span> <span class="f">plugin reload</span> myplugin       <span class="c"># 加载（改代码后重复执行即可热重载）</span>
+<span class="p">$</span> myplugin hello                <span class="c"># 运行你的命令</span>
+hello hello（配置 example=value）
+
+<span class="p">$</span> <span class="f">plugin info</span> myplugin         <span class="c"># 查看注册结果与配置项</span></code></pre>
+          <button class="copy-btn" data-copy="plugin new myplugin
+plugin reload myplugin
+myplugin hello
+plugin info myplugin">复制</button>
+        </div>
+
+        <div class="callout">
+          <strong>生成的两个文件</strong>
+          <ul>
+            <li><code>plugin.json</code> —— 元数据、命令声明、默认配置</li>
+            <li><code>plugin.py</code> —— Python 实现，每个命令一个函数</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ---------------- 插件结构 ---------------- -->
+      <section class="doc-section" id="structure">
+        <h2>插件结构</h2>
+
+        <div class="file-tree">
+          <div class="ft-line"><span class="ft-dir">plugins/</span></div>
+          <div class="ft-line"><span class="ft-branch">└──</span> <span class="ft-dir">myplugin/</span></div>
+          <div class="ft-line"><span class="ft-branch">&nbsp;&nbsp;&nbsp;&nbsp;├──</span> <span class="ft-file">plugin.json</span> <span class="ft-note">必需 · 元数据与配置</span></div>
+          <div class="ft-line"><span class="ft-branch">&nbsp;&nbsp;&nbsp;&nbsp;└──</span> <span class="ft-file">plugin.py</span> <span class="ft-note">必需 · Python 实现</span></div>
+        </div>
+
+        <p>KShell 按以下顺序搜索插件目录，<strong>先找到的优先</strong>（同名插件不会被后面的覆盖）：</p>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>顺序</th><th>目录</th><th>用途</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td><code>打包内置目录</code></td><td>随 KShell 发布的官方示例</td></tr>
+              <tr><td>2</td><td><code>项目根/plugins/</code></td><td>源码运行时使用</td></tr>
+              <tr><td>3</td><td><code>可执行文件同级/plugins/</code></td><td><strong>推荐放自己的插件</strong></td></tr>
+              <tr><td>4</td><td><code>~/.kshell/plugins/</code></td><td>用户级插件</td></tr>
+              <tr><td>5</td><td><code>plugins.dirs</code> 配置项</td><td>自定义目录</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-wrap">
+          <pre class="code-block"><code><span class="p">$</span> <span class="f">plugin dirs</span>     <span class="c"># 查看本机的实际搜索路径</span></code></pre>
+          <button class="copy-btn" data-copy="plugin dirs">复制</button>
+        </div>
+      </section>
+
+      <!-- ---------------- plugin.json ---------------- -->
+      <section class="doc-section" id="manifest">
+        <h2>plugin.json 字段</h2>
+
+        <div class="code-wrap">
+          <pre class="code-block"><code>{
+  <span class="k">"name"</span>: <span class="s">"myplugin"</span>,              <span class="c">// 必须与目录名一致</span>
+  <span class="k">"version"</span>: <span class="s">"1.0.0"</span>,
+  <span class="k">"author"</span>: <span class="s">"你的名字"</span>,
+  <span class="k">"description"</span>: <span class="s">"插件的一句话说明"</span>,
+  <span class="k">"kshell"</span>: <span class="s">"&gt;=2.1.0"</span>,             <span class="c">// 要求的 KShell 版本</span>
+  <span class="k">"enabled"</span>: <span class="n">true</span>,
+  <span class="k">"commands"</span>: {
+    <span class="k">"myplugin"</span>: {
+      <span class="k">"function"</span>: <span class="s">"cmd_main"</span>,        <span class="c">// 默认 cmd_&lt;命令名&gt;</span>
+      <span class="k">"usage"</span>: <span class="s">"myplugin [参数] [-v]"</span>,
+      <span class="k">"description"</span>: <span class="s">"命令说明"</span>,
+      <span class="k">"aliases"</span>: [<span class="s">"mp"</span>]
+    }
+  },
+  <span class="k">"settings"</span>: {                       <span class="c">// 默认配置，用户可覆盖</span>
+    <span class="k">"greeting"</span>: <span class="s">"Hello"</span>,
+    <span class="k">"count"</span>: <span class="n">3</span>
+  }
+}</code></pre>
+          <button class="copy-btn" data-copy='{"name":"myplugin","version":"1.0.0","commands":{"myplugin":{"function":"cmd_main"}},"settings":{"greeting":"Hello"}}'>复制</button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>字段</th><th>必需</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td><code>name</code></td><td class="req">是</td><td>插件名，<strong>必须与目录名一致</strong>；仅允许字母、数字、<code>_</code>、<code>-</code></td></tr>
+              <tr><td><code>version</code></td><td>否</td><td>建议语义化版本</td></tr>
+              <tr><td><code>author</code> / <code>description</code></td><td>否</td><td>显示在 <code>plugin list</code></td></tr>
+              <tr><td><code>homepage</code></td><td>否</td><td>主页或仓库地址</td></tr>
+              <tr><td><code>kshell</code></td><td>否</td><td>支持 <code>&gt;=</code> <code>&lt;=</code> <code>&gt;</code> <code>&lt;</code> <code>==</code> <code>!=</code>；只写版本号视为最低版本</td></tr>
+              <tr><td><code>enabled</code></td><td>否</td><td>默认是否启用（用户配置优先级更高）</td></tr>
+              <tr><td><code>commands</code></td><td>否</td><td>省略则自动发现 <code>cmd_*</code> 函数</td></tr>
+              <tr><td><code>settings</code></td><td>否</td><td>默认配置项，用户可用 <code>plugin config</code> 覆盖</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>commands 的三种写法</h3>
+
+        <div class="variant-grid">
+          <div class="variant">
+            <h4>① 字符串数组</h4>
+            <pre class="code-block"><code><span class="k">"commands"</span>: [<span class="s">"hello"</span>, <span class="s">"greet"</span>]</code></pre>
+            <p>自动对应 <code>cmd_hello()</code> 与 <code>cmd_greet()</code></p>
+          </div>
+          <div class="variant">
+            <h4>② 对象（可指定细节）</h4>
+            <pre class="code-block"><code><span class="k">"commands"</span>: {
+  <span class="k">"pwd-strength"</span>: {
+    <span class="k">"function"</span>: <span class="s">"cmd_strength"</span>,
+    <span class="k">"aliases"</span>: [<span class="s">"pws"</span>]
+  }
+}</code></pre>
+            <p>命令名与函数名可以不同，还能加别名</p>
+          </div>
+          <div class="variant">
+            <h4>③ 省略（自动发现）</h4>
+            <pre class="code-block"><code><span class="c">// 不写 commands 字段</span>
+<span class="c">// cmd_auto_one → 命令 auto-one</span></code></pre>
+            <p>扫描 <code>plugin.py</code> 中所有 <code>cmd_xxx</code> 函数</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------- plugin.py ---------------- -->
+      <section class="doc-section" id="implement">
+        <h2>plugin.py 实现</h2>
+        <p>每个命令对应一个函数，签名固定为 <code>(args, options, ctx)</code>：</p>
+
+        <div class="code-wrap">
+          <pre class="code-block"><code><span class="k">def</span> <span class="f">cmd_hello</span>(args, options, ctx):
+    <span class="c"># 读取插件配置（plugin.json 的 settings，可被用户覆盖）</span>
+    greeting = ctx.get(<span class="s">'greeting'</span>, <span class="s">'Hello'</span>)
+
+    <span class="c"># args 是位置参数列表，options 是选项字典</span>
+    name = args[<span class="n">0</span>] <span class="k">if</span> args <span class="k">else</span> <span class="s">'World'</span>
+    verbose = <span class="s">'v'</span> <span class="k">in</span> options
+
+    lines = [<span class="s">f'</span><span class="s">{greeting}, </span><span class="s">{name}!</span><span class="s">'</span>]
+    <span class="k">if</span> verbose:
+        lines.append(<span class="s">f'插件目录: </span><span class="s">{ctx.dir}</span><span class="s">'</span>)
+
+    <span class="k">return</span> <span class="n">0</span>, <span class="s">'\n'</span>.join(lines)
+
+
+<span class="k">def</span> <span class="f">on_load</span>(ctx):
+    <span class="c">"""可选：插件加载完成时调用"""</span>
+    ctx.log(<span class="s">'myplugin 已加载'</span>)</code></pre>
+          <button class="copy-btn" data-copy="def cmd_hello(args, options, ctx):
+    greeting = ctx.get('greeting', 'Hello')
+    name = args[0] if args else 'World'
+    return 0, f'{greeting}, {name}!'">复制</button>
+        </div>
+
+        <div class="callout warn">
+          <strong>选项解析注意点</strong>
+          <p>KShell 把<strong>短选项一律视为布尔标志</strong>，因此需要带值的选项请用长选项：</p>
+          <pre class="code-block"><code><span class="p">$</span> mycmd -v            <span class="c"># options = {'v': True}</span>
+<span class="p">$</span> mycmd -l 24         <span class="c"># options = {'l': True}, args = ['24']  ← 24 是位置参数</span>
+<span class="p">$</span> mycmd --length 24   <span class="c"># options = {'length': '24'}   ✓ 推荐</span>
+<span class="p">$</span> mycmd --length=24   <span class="c"># options = {'length': '24'}   ✓ 推荐</span></code></pre>
+        </div>
+      </section>
+
+      <!-- ---------------- ctx API ---------------- -->
+      <section class="doc-section" id="ctx">
+        <h2>ctx 上下文 API</h2>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>成员</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td><code>ctx.name</code> / <code>ctx.version</code></td><td>插件名 / 版本</td></tr>
+              <tr><td><code>ctx.dir</code></td><td>插件目录（<code>pathlib.Path</code>）</td></tr>
+              <tr><td><code>ctx.plugin</code></td><td>插件对象，含 <code>manifest</code> 原始 JSON</td></tr>
+              <tr><td><code>ctx.get(key, default)</code></td><td><strong>读取插件配置</strong>（默认值 + 用户覆盖）</td></tr>
+              <tr><td><code>ctx.set(key, value)</code></td><td><strong>写入插件配置</strong>（持久化）</td></tr>
+              <tr><td><code>ctx.config()</code></td><td>取全部配置的字典</td></tr>
+              <tr><td><code>ctx.fs</code></td><td>文件系统对象（<code>getcwd()</code> <code>list_dir()</code> <code>read_file()</code> …）</td></tr>
+              <tr><td><code>ctx.platform</code></td><td>平台信息（<code>system</code> <code>home_dir</code> <code>is_windows()</code> …）</td></tr>
+              <tr><td><code>ctx.settings</code></td><td>全局设置（<code>get()</code>）</td></tr>
+              <tr><td><code>ctx.colorize(text, key)</code></td><td>按主题着色</td></tr>
+              <tr><td><code>ctx.log(msg)</code></td><td>记录日志（加载阶段会打印）</td></tr>
+              <tr><td><code>ctx.command_exists(name)</code></td><td>命令是否已存在</td></tr>
+              <tr><td><code>ctx.register_command(name, fn, usage, desc)</code></td><td>运行期动态注册命令</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>可用着色 key：</p>
+        <div class="tag-cloud">
+          <code>success</code><code>error</code><code>warning</code><code>info</code>
+          <code>title</code><code>dir</code><code>file</code><code>link</code><code>command</code>
+        </div>
+      </section>
+
+      <!-- ---------------- 返回值 ---------------- -->
+      <section class="doc-section" id="return">
+        <h2>返回值约定</h2>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>返回</th><th>效果</th></tr></thead>
+            <tbody>
+              <tr><td><code>return 0, "文本"</code></td><td>成功，输出文本</td></tr>
+              <tr><td><code>return 1, "错误"</code></td><td>失败，输出错误信息</td></tr>
+              <tr><td><code>return "文本"</code></td><td>等价于 <code>(0, "文本")</code></td></tr>
+              <tr><td><code>return None</code></td><td>等价于 <code>(0, "")</code></td></tr>
+              <tr><td><code>return 3</code></td><td>退出码 3，无输出</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>插件异常会被自动捕获并隔离，<strong>不会导致 Shell 崩溃</strong>：</p>
+
+        <pre class="code-block"><code><span class="p">$</span> boom
+[插件 boom] 命令 boom 执行出错 → ValueError: 故意炸掉</code></pre>
+      </section>
+
+      <!-- ---------------- 完整示例 ---------------- -->
+      <section class="doc-section" id="examples">
+        <h2>官方示例插件</h2>
+        <p>随 KShell 发布的三个插件，源码即是教材：</p>
+
+        <div class="example-tabs" role="tablist">
+          <button class="etab is-active" data-example="hello">hello · 入门</button>
+          <button class="etab" data-example="pwgen">pwgen · 多命令</button>
+          <button class="etab" data-example="sysinfo">sysinfo · 结构化输出</button>
+        </div>
+
+        <div class="example-panel is-active" id="example-hello">
+          <p class="example-desc">演示配置读取、选项解析、返回值与 <code>on_load</code> 回调。</p>
+          <pre class="code-block"><code><span class="k">def</span> <span class="f">cmd_hello</span>(args, options, ctx):
+    greeting = ctx.get(<span class="s">'greeting'</span>, <span class="s">'Hello'</span>)
+    punctuation = ctx.get(<span class="s">'punctuation'</span>, <span class="s">'!'</span>)
+    name = args[<span class="n">0</span>] <span class="k">if</span> args <span class="k">else</span> <span class="s">'World'</span>
+
+    <span class="k">if</span> ctx.get(<span class="s">'uppercase_name'</span>, <span class="n">False</span>):
+        name = name.upper()
+
+    lines = [<span class="s">f'</span><span class="s">{greeting}, </span><span class="s">{name}{punctuation}</span><span class="s">'</span>]
+    <span class="k">if</span> <span class="s">'v'</span> <span class="k">in</span> options:
+        lines.append(<span class="s">f'插件目录: </span><span class="s">{ctx.dir}</span><span class="s">'</span>)
+    <span class="k">return</span> <span class="n">0</span>, <span class="s">'\n'</span>.join(lines)</code></pre>
+          <p class="example-usage">
+            用法：<code>hello KShell</code> ·
+            配置：<code>plugin config hello greeting=你好</code>
+          </p>
+        </div>
+
+        <div class="example-panel" id="example-pwgen">
+          <p class="example-desc">一个插件注册 3 条命令，命令名与函数名不同，使用加密安全随机源。</p>
+          <pre class="code-block"><code><span class="c"># plugin.json 中声明：</span>
+<span class="c">#   pwgen           → cmd_pwgen</span>
+<span class="c">#   uuid            → cmd_uuid</span>
+<span class="c">#   passwd-strength → cmd_strength</span>
+
+<span class="k">import</span> secrets
+
+<span class="k">def</span> <span class="f">_generate</span>(length, use_symbols=<span class="n">True</span>):
+    pool = string.ascii_letters + string.digits
+    <span class="k">if</span> use_symbols:
+        pool += <span class="s">'!@#$%^&amp;*()-_=+'</span>
+    <span class="k">return</span> <span class="s">''</span>.join(secrets.choice(pool) <span class="k">for</span> _ <span class="k">in</span> range(length))
+
+<span class="k">def</span> <span class="f">cmd_pwgen</span>(args, options, ctx):
+    length = <span class="k">int</span>(ctx.get(<span class="s">'default_length'</span>, <span class="n">16</span>))
+    <span class="k">return</span> <span class="n">0</span>, _generate(length, ctx.get(<span class="s">'use_symbols'</span>, <span class="n">True</span>))</code></pre>
+          <p class="example-usage">
+            用法：<code>pwgen 3 20</code> · <code>uuid</code> · <code>passwd-strength A1b2C3!@</code>
+          </p>
+        </div>
+
+        <div class="example-panel" id="example-sysinfo">
+          <p class="example-desc"><code>--json</code> 输出机器可读数据，配置项控制是否显示磁盘信息，取不到的信息自动跳过。</p>
+          <pre class="code-block"><code><span class="k">def</span> <span class="f">cmd_sysinfo</span>(args, options, ctx):
+    info = _collect(ctx)          <span class="c"># 失败项自动跳过</span>
+
+    <span class="k">if</span> <span class="s">'json'</span> <span class="k">in</span> options:          <span class="c"># --json</span>
+        <span class="k">return</span> <span class="n">0</span>, json.dumps(info, ensure_ascii=<span class="n">False</span>, indent=<span class="n">2</span>)
+
+    width = max(<span class="k">len</span>(k) <span class="k">for</span> k <span class="k">in</span> info)
+    lines = [ctx.colorize(<span class="s">'系统信息'</span>, <span class="s">'title'</span>), <span class="s">''</span>]
+    <span class="k">for</span> key, value <span class="k">in</span> info.items():
+        lines.append(<span class="s">f'  </span><span class="s">{key:&lt;{width}}</span><span class="s"> : </span><span class="s">{value}</span><span class="s">'</span>)
+    <span class="k">return</span> <span class="n">0</span>, <span class="s">'\n'</span>.join(lines)</code></pre>
+          <p class="example-usage">
+            用法：<code>sysinfo</code> · <code>sysinfo --json</code> · 配置：<code>plugin config sysinfo show_disk=false</code>
+          </p>
+        </div>
+      </section>
+
+      <!-- ---------------- 插件画廊 ---------------- -->
+      <section class="doc-section" id="gallery">
+        <div class="section-head-inline">
+          <h2>插件画廊</h2>
+          <div class="gallery-filter" id="gallery-filter"></div>
+        </div>
+        <p class="muted" id="gallery-note">正在加载社区插件…</p>
+        <div class="plugin-grid" id="plugin-grid"></div>
+      </section>
+
+      <!-- ---------------- 提交插件 ---------------- -->
+      <section class="doc-section" id="submit">
+        <h2>提交你的插件</h2>
+
+        <ol class="steps">
+          <li>
+            <b>把插件目录推到 GitHub</b>
+            <p>推荐仓库根目录就是插件目录，方便用户直接克隆到 <code>plugins/</code> 下。</p>
+          </li>
+          <li>
+            <b>README 中说明清楚</b>
+            <p>插件名、命令列表、KShell 版本要求、配置项、依赖。</p>
+          </li>
+          <li>
+            <b>登记到社区</b>
+            <p>在 <a href="https://github.com/Qin-collab/KShell/issues" target="_blank" rel="noopener">GitHub Issues</a> 提交，附上仓库地址与说明；通过审核后会出现在上方画廊。</p>
+          </li>
+        </ol>
+
+        <div class="callout">
+          <strong>发布前自查</strong>
+          <ul class="checklist">
+            <li><code>plugin.json</code> 中 <code>name</code> 与目录名一致</li>
+            <li>所有 <code>commands</code> 声明的函数都真实存在</li>
+            <li><code>plugin list</code> 中状态为「已加载」</li>
+            <li>每条命令都试过：正常参数、缺参数、错误参数</li>
+            <li>没有硬编码密钥</li>
+            <li>已声明 <code>kshell</code> 最低版本</li>
+          </ul>
+        </div>
+
+        <div class="code-wrap">
+          <pre class="code-block"><code><span class="c"># 本地自检</span>
+<span class="p">$</span> <span class="f">plugin list</span>                  <span class="c"># 状态应为「已加载」</span>
+<span class="p">$</span> <span class="f">plugin info</span> myplugin         <span class="c"># 确认命令与配置项</span>
+<span class="p">$</span> <span class="f">plugin reload</span> myplugin       <span class="c"># 确认无语法错误</span></code></pre>
+          <button class="copy-btn" data-copy="plugin list
+plugin info myplugin
+plugin reload myplugin">复制</button>
+        </div>
+      </section>
+
+      <!-- ---------------- 安全 ---------------- -->
+      <section class="doc-section" id="security">
+        <h2>安全须知</h2>
+
+        <div class="callout danger">
+          <strong>⚠️ 插件是普通 Python 代码，拥有与 KShell 相同的权限</strong>
+          <p>插件可以读写文件、执行命令、访问网络。KShell 目前<strong>不提供插件沙箱</strong>。</p>
+        </div>
+
+        <ul class="security-list">
+          <li><b>只安装信任的插件</b> —— 安装前建议阅读 <code>plugin.py</code> 源码</li>
+          <li><b>不要硬编码密钥</b> —— 用 <code>ctx.get()</code> 让用户在配置中填写</li>
+          <li><b>生成密码用 <code>secrets</code></b> —— 不要用 <code>random</code></li>
+          <li><b>注意异常隔离的边界</b> —— 异常会被捕获，但死循环、<code>sys.exit()</code>、大量内存分配仍会影响 Shell</li>
+          <li><b>隔离环境验证</b> —— 运行不受信任的插件前，先在容器或虚拟机中评估</li>
+        </ul>
+
+        <div class="cta-row" style="margin-top:28px">
+          <a class="btn btn-primary" href="https://github.com/Qin-collab/KShell/blob/main/PLUGIN_DEV.md" target="_blank" rel="noopener">阅读完整开发文档</a>
+          <a class="btn btn-ghost" href="https://github.com/Qin-collab/KShell/tree/main/plugins" target="_blank" rel="noopener">查看示例源码</a>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- ===================== 页脚 ===================== -->
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <span class="brand-mark" aria-hidden="true">&gt;_</span>
+      <div>
+        <b>KShell</b>
+        <p>纯 Python 编写的跨平台终端</p>
+      </div>
+    </div>
+
+    <nav class="footer-links" aria-label="页脚导航">
+      <div>
+        <h4>项目</h4>
+        <a href="https://github.com/Qin-collab/KShell" target="_blank" rel="noopener">源码仓库</a>
+        <a href="https://github.com/Qin-collab/KShell/releases" target="_blank" rel="noopener">版本发布</a>
+        <a href="https://github.com/Qin-collab/KShell/issues" target="_blank" rel="noopener">问题反馈</a>
+      </div>
+      <div>
+        <h4>插件开发</h4>
+        <a href="https://github.com/Qin-collab/KShell/blob/main/PLUGIN_DEV.md" target="_blank" rel="noopener">开发指南</a>
+        <a href="https://github.com/Qin-collab/KShell/tree/main/plugins" target="_blank" rel="noopener">示例插件</a>
+        <a href="#gallery">插件画廊</a>
+        <a href="#submit">提交插件</a>
+      </div>
+      <div>
+        <h4>本页</h4>
+        <a href="#quickstart">快速上手</a>
+        <a href="#manifest">配置字段</a>
+        <a href="#ctx">API 参考</a>
+        <a href="#security">安全须知</a>
+      </div>
+    </nav>
+  </div>
+
+  <div class="wrap footer-bottom">
+    <p>
+      © <span id="year">2026</span> KShell · 基于 <span data-license>Apache-2.0</span> 协议开源
+    </p>
+    <p class="footer-term"><code><span class="p">$</span> kshell plugin new myplugin<span class="cursor" aria-hidden="true"></span></code></p>
+  </div>
+</footer>
+
+<script src="/community.js" defer></script>
+</body>
+</html>

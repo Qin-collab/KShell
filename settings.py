@@ -55,15 +55,50 @@ class SettingsManager:
             # True  = 内置优先（默认），用 command <cmd> 可强制执行系统版本
             # False = 系统命令优先，系统不存在时回退到内置
             "builtin_priority": True,
+            # v2.1：插件系统
+            #   enabled —— { "插件名": true/false }
+            #   config  —— { "插件名": { "键": 值 } }
+            #   dirs    —— 额外插件搜索目录（数组）
+            "plugins": {
+                "enabled": {},
+                "config": {},
+                "dirs": [],
+            },
         }
 
     def get(self, key: str, default: Any = None) -> Any:
-        """获取设置值"""
+        """
+        获取设置值。
+
+        支持点号路径（如 "plugins.enabled"）读取嵌套配置；
+        若嵌套路径不存在，会回退查找同名的扁平键（兼容早期写法）。
+        """
+        if '.' in key:
+            current = self.settings
+            for part in key.split('.'):
+                if not isinstance(current, dict) or part not in current:
+                    # 回退：查找扁平的 "a.b" 键
+                    return self.settings.get(key, default)
+                current = current[part]
+            return current
         return self.settings.get(key, default)
 
     def set(self, key: str, value: Any):
-        """设置值"""
-        self.settings[key] = value
+        """设置值。key 含点号时写入嵌套结构（如 plugins.enabled）"""
+        if '.' in key:
+            parts = key.split('.')
+            current = self.settings
+            for part in parts[:-1]:
+                nxt = current.get(part)
+                if not isinstance(nxt, dict):
+                    nxt = {}
+                    current[part] = nxt
+                current = nxt
+            current[parts[-1]] = value
+            # 清理可能存在的同名扁平键，避免两处数据不一致
+            self.settings.pop(key, None)
+        else:
+            self.settings[key] = value
         self._save_settings(self.settings)
 
     def reset(self):

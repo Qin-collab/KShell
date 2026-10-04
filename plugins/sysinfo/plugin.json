@@ -1,0 +1,24 @@
+{
+  "name": "sysinfo",
+  "version": "1.0.0",
+  "author": "KShell Team",
+  "description": "系统信息速查：操作系统、Python 环境、CPU、内存、磁盘与 KShell 运行状态",
+  "kshell": ">=2.1.0",
+  "enabled": true,
+  "commands": {
+    "sysinfo": {
+      "function": "cmd_sysinfo",
+      "usage": "sysinfo [-a] [--json]",
+      "description": "显示系统信息（-a 显示全部，--json 输出 JSON）"
+    },
+    "sys": {
+      "function": "cmd_sysinfo",
+      "usage": "sys",
+      "description": "sysinfo 的短别名"
+    }
+  },
+  "settings": {
+    "show_kernel": true,
+    "show_disk": true
+  }
+}

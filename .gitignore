@@ -43,6 +43,9 @@ test_cmds.txt
 kshell_config.json
 .tmp/
 
+# 本地备份（体积大，且可能含运行时数据与密码哈希）
+.backup/
+
 # 打包产物
 *.spec.bak
 build/kshell/

@@ -4,17 +4,38 @@ KShell PyInstaller 打包配置
 生成: dist/kshell.exe (Windows) 或 dist/kshell (Linux/macOS)
 """
 
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath('.'))
+
+# 插件是运行时动态加载的，PyInstaller 静态分析看不到插件里的 import，
+# 因此必须显式把插件常用的标准库模块加入 hiddenimports，
+# 否则打包后插件会报 ModuleNotFoundError。
+try:
+    from pluginmgr import PLUGIN_STDLIB_HINTS as PLUGIN_MODULES
+except Exception:
+    PLUGIN_MODULES = ['secrets', 'uuid', 'string', 'hashlib', 'socket']
+
+PROJECT_MODULES = [
+    'terminal', 'kplatform', 'filesystem', 'parser',
+    'process', 'builtin', 'settings', 'banner', 'theme',
+    'commands_extra', 'syscmd',
+    # v2.1 插件系统
+    'pluginmgr', 'commands_plugin', 'version',
+]
+
 a = Analysis(
     ['kshell.py'],
     pathex=[],
     binaries=[],
-    datas=[],
-    # 显式声明项目模块，确保全部打包
-    hiddenimports=[
-        'terminal', 'kplatform', 'filesystem', 'parser',
-        'process', 'builtin', 'settings', 'banner', 'theme',
-        'commands_extra', 'syscmd',
+    # 插件示例与开发文档作为数据文件打包：
+    #   运行时由 PluginManager 从 sys._MEIPASS/plugins 加载
+    datas=[
+        ('plugins', 'plugins'),
+        ('PLUGIN_DEV.md', '.'),
     ],
+    hiddenimports=PROJECT_MODULES + PLUGIN_MODULES,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

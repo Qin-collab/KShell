@@ -1,0 +1,25 @@
+{
+  "name": "hello",
+  "version": "1.0.0",
+  "author": "KShell Team",
+  "description": "最小示例插件：演示配置读取、选项解析与返回值约定",
+  "kshell": ">=2.1.0",
+  "enabled": true,
+  "commands": {
+    "hello": {
+      "function": "cmd_hello",
+      "usage": "hello [名字] [-v]",
+      "description": "打招呼（-v 显示插件信息）"
+    },
+    "greet": {
+      "function": "cmd_hello",
+      "usage": "greet [名字]",
+      "description": "hello 的别名命令"
+    }
+  },
+  "settings": {
+    "greeting": "Hello",
+    "punctuation": "!",
+    "uppercase_name": false
+  }
+}
