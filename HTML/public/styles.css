@@ -457,6 +457,22 @@ code {
   box-shadow: 0 16px 40px rgba(0, 0, 0, .3);
 }
 .card h3 { font-size: 1.08rem; margin-bottom: .5em; }
+
+/* 版本新增标记 */
+.tag-new {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  color: #05210f;
+  background: linear-gradient(135deg, var(--green), #24c46f);
+  border-radius: 20px;
+  padding: 2px 8px;
+  margin-left: 4px;
+  transform: translateY(-1px);
+}
+
 .card p { font-size: .92rem; color: var(--muted); margin-bottom: 14px; }
 .card p strong { color: var(--text); }
 

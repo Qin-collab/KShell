@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KShell — 纯 Python 编写的跨平台终端</title>
-<meta name="description" content="KShell 是一个纯 Python 编写的跨平台终端：零 GUI 依赖、68 条内置命令、6 套主题，支持 Windows / macOS / Linux，系统 PATH 命令直通，内置命令优先。">
+<meta name="description" content="KShell 是一个纯 Python 编写的跨平台终端：零 GUI 依赖、69 条内置命令、6 套主题，支持 Windows / macOS / Linux，系统 PATH 命令直通，内置命令优先，可用 JSON + Python 开发插件。">
 <meta name="keywords" content="KShell,终端,Terminal,Shell,Python,跨平台,Windows,macOS,Linux">
 <meta name="author" content="Qin-collab">
 <meta name="theme-color" content="#0a0e14">
@@ -12,7 +12,7 @@
 <!-- Open Graph -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="KShell — 纯 Python 编写的跨平台终端">
-<meta property="og:description" content="零 GUI 依赖、68 条内置命令、6 套主题，系统 PATH 命令直通，支持 Windows / macOS / Linux。">
+<meta property="og:description" content="零 GUI 依赖、69 条内置命令、6 套主题，系统 PATH 命令直通，插件系统可用 JSON + Python 扩展，支持 Windows / macOS / Linux。">
 <meta property="og:url" content="https://github.com/Qin-collab/KShell">
 
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -76,8 +76,8 @@
 
         <p class="lead">
           零 GUI 依赖、零外部依赖，一个文件即可开箱即用。
-          <strong>68 条内置命令</strong>、<strong>6 套主题</strong>，系统 PATH 命令直通，
-          Windows / macOS / Linux 三端一致。
+          <strong>69 条内置命令</strong>、<strong>6 套主题</strong>，系统 PATH 命令直通，
+          还能用 <strong>JSON + Python</strong> 写插件扩展。
         </p>
 
         <div class="cta-row">
@@ -125,7 +125,7 @@
   <!-- ===================== 数据条 ===================== -->
   <section class="stats">
     <div class="wrap stats-inner">
-      <div class="stat"><b data-count="68">68</b><span>内置与扩展命令</span></div>
+      <div class="stat"><b data-count="69">69</b><span>内置与扩展命令</span></div>
       <div class="stat"><b data-count="6">6</b><span>预设主题</span></div>
       <div class="stat"><b>3</b><span>支持平台</span></div>
       <div class="stat"><b>0</b><span>第三方依赖</span></div>
@@ -137,11 +137,23 @@
   <section class="section" id="features">
     <div class="wrap">
       <header class="section-head">
-        <h2>v2.0 核心特性</h2>
-        <p>打通与操作系统命令行的边界，同时保持跨平台行为一致</p>
+        <h2>核心特性</h2>
+        <p>2.0 打通系统命令行边界，2.1 让你自己扩展它</p>
       </header>
 
       <div class="cards">
+        <article class="card reveal">
+          <div class="card-icon icon-green">⬡</div>
+          <h3>插件系统 <span class="tag-new">2.1 新增</span></h3>
+          <p>
+            用 <strong>JSON 配置 + Python 实现</strong>扩展 KShell。
+            一个目录两个文件放进 <code>plugins/</code> 即被自动发现，
+            <strong>支持热重载</strong>与独立配置，无需修改本体。
+          </p>
+          <pre class="mini-code"><code>plugin new myplugin
+plugin reload myplugin</code></pre>
+        </article>
+
         <article class="card reveal">
           <div class="card-icon icon-cyan">⌘</div>
           <h3>系统 PATH 命令直通</h3>
@@ -166,10 +178,10 @@ command ls -l    <span class="c"># 系统版本</span></code></pre>
 
         <article class="card reveal">
           <div class="card-icon icon-purple">⌗</div>
-          <h3>68 条内置命令</h3>
+          <h3>69 条内置命令</h3>
           <p>
-            36 条核心命令 + 32 条扩展命令，覆盖文件操作、文本处理、
-            查找检索、系统信息与工具类，无需安装 GNU 工具链。
+            36 条核心命令 + 32 条扩展命令 + 插件管理命令，覆盖文件操作、
+            文本处理、查找检索、系统信息与工具类，无需安装 GNU 工具链。
           </p>
           <pre class="mini-code"><code>grep / find / tree / du
 base64 / md5sum / sha256sum</code></pre>
@@ -266,7 +278,7 @@ alias ll='ls -l'</code></pre>
     <div class="wrap">
       <header class="section-head">
         <h2>命令参考</h2>
-        <p>68 条内置命令，另有系统 PATH 中任意命令可直接调用</p>
+        <p>69 条内置命令，另有系统 PATH 中任意命令，以及你自己写的插件命令</p>
       </header>
 
       <div class="cmd-groups">
@@ -286,6 +298,10 @@ alias ll='ls -l'</code></pre>
           <h3>终端与配置</h3>
           <p><code>clear</code><code>cls</code><code>history</code><code>alias</code><code>unalias</code><code>which</code><code>man</code><code>help</code><code>config</code><code>theme</code><code>path</code><code>calc</code><code>seq</code><code>yes</code><code>true</code><code>false</code><code>exit</code><code>quit</code></p>
         </div>
+        <div class="cmd-group reveal">
+          <h3>插件系统 <span class="tag-new">2.1</span></h3>
+          <p><code>plugin list</code><code>plugin info</code><code>plugin enable</code><code>plugin disable</code><code>plugin reload</code><code>plugin config</code><code>plugin dirs</code><code>plugin new</code></p>
+        </div>
       </div>
 
       <div class="note reveal">
@@ -293,6 +309,14 @@ alias ll='ls -l'</code></pre>
         内置命令 <span class="arrow">›</span> 系统 PATH 命令。
         两者同名时默认执行内置版本，用 <code>command &lt;cmd&gt;</code> 强制走系统版本，
         或 <code>config set builtin_priority false</code> 全局切换为系统优先。
+      </div>
+
+      <div class="note reveal" style="margin-top:14px">
+        <strong>插件命令：</strong>
+        插件注册的命令与内置命令同级，可直接调用。
+        用 <code>plugin new &lt;名称&gt;</code> 生成骨架，
+        <code>plugin reload &lt;名称&gt;</code> 热重载 ——
+        详见 <a href="/community">开发者社区</a>。
       </div>
     </div>
   </section>

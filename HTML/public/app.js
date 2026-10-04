@@ -314,23 +314,25 @@
   /* -------------------------------------------------------- 终端打字动画 */
 
   var DEMO = [
-    { type: 'dim', text: 'KShell v2.0 - 跨平台 Python 终端' },
+    { type: 'dim', text: 'KShell v2.1 - 跨平台 Python 终端' },
     { type: 'dim', text: 'Type help for commands, theme for themes.' },
     { type: 'cmd', text: 'git status' },
     { type: 'out', text: 'On branch main' },
     { type: 'out', text: 'nothing to commit, working tree clean' },
+    { type: 'cmd', text: 'plugin list' },
+    { type: 'out', text: '  hello     1.0.0  已加载  2  最小示例插件' },
+    { type: 'out', text: '  pwgen     1.0.0  已加载  3  密码与 UUID 生成器' },
+    { type: 'out', text: '  sysinfo   1.0.0  已加载  2  系统信息速查' },
+    { type: 'cmd', text: 'pwgen 2 16' },
+    { type: 'ok', text: '  xK9#mQ4vLp2$RtWn' },
+    { type: 'ok', text: '  7bF3@hYz1Ns8!cJd' },
     { type: 'cmd', text: 'ping -n 2 127.0.0.1' },
     { type: 'out', text: 'Reply from 127.0.0.1: bytes=32 time<1ms TTL=128' },
     { type: 'out', text: 'Reply from 127.0.0.1: bytes=32 time<1ms TTL=128' },
     { type: 'cmd', text: 'path -s git' },
-    { type: 'out', text: '  git' },
     { type: 'cyan', text: '    C:\\Program Files\\Git\\cmd\\git.exe' },
-    { type: 'dim', text: '  共 1 条' },
     { type: 'cmd', text: 'calc (1+2)*3' },
-    { type: 'ok', text: '9' },
-    { type: 'cmd', text: 'command ls -l' },
-    { type: 'out', text: '-rw-r--r-- 1 user 8.2K kshell.py' },
-    { type: 'out', text: '-rw-r--r-- 1 user 7.2K syscmd.py' }
+    { type: 'ok', text: '9' }
   ];
 
   var PROMPT = '<span class="t-user">user</span><span class="t-dim">:</span>' +
