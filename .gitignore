@@ -46,6 +46,16 @@ kshell_config.json
 # 本地备份（体积大，且可能含运行时数据与密码哈希）
 .backup/
 
+# 代码签名私钥 —— 泄露即可被冒名签名，绝对不能提交
+*.pfx
+*.pvk
+*.p12
+*.key
+signing/*.pfx
+signing/*.pvk
+signing/*.p12
+signing/*.key
+
 # 打包产物
 *.spec.bak
 build/kshell/
